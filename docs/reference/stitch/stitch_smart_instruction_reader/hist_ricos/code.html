@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Históricos de Movimientos - Bóveda Personal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#e9c349",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "error-container": "#93000a",
+                        "surface-container-lowest": "#050f1c",
+                        "primary-fixed": "#e5e2e1",
+                        "outline": "#8e9192",
+                        "secondary-container": "#af8d11",
+                        "on-secondary-fixed": "#241a00",
+                        "on-primary-fixed": "#1c1b1b",
+                        "on-tertiary-container": "#008b5f",
+                        "surface-container": "#16202e",
+                        "on-secondary-container": "#342800",
+                        "inverse-on-surface": "#27313f",
+                        "surface-variant": "#2b3544",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "on-secondary-fixed-variant": "#574500",
+                        "surface-dim": "#091421",
+                        "surface-container-low": "#121c2a",
+                        "inverse-primary": "#5f5e5e",
+                        "inverse-surface": "#d9e3f6",
+                        "error": "#ffb4ab",
+                        "tertiary": "#4edea3",
+                        "surface": "#091421",
+                        "on-surface-variant": "#c4c7c7",
+                        "on-tertiary-fixed": "#002113",
+                        "tertiary-fixed": "#6ffbbe",
+                        "on-error-container": "#ffdad6",
+                        "background": "#091421",
+                        "on-primary": "#313030",
+                        "surface-tint": "#c9c6c5",
+                        "secondary-fixed": "#ffe088",
+                        "primary-container": "#0a0a0a",
+                        "on-secondary": "#3c2f00",
+                        "surface-bright": "#303a48",
+                        "tertiary-container": "#000d06",
+                        "primary-fixed-dim": "#c9c6c5",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#474646",
+                        "on-primary-container": "#7b7979",
+                        "primary": "#c9c6c5",
+                        "on-background": "#d9e3f6",
+                        "on-tertiary": "#003824",
+                        "surface-container-high": "#212b39",
+                        "surface-container-highest": "#2b3544",
+                        "outline-variant": "#444748",
+                        "on-surface": "#d9e3f6",
+                        "secondary": "#e9c349"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "container-padding": "20px",
+                        "base": "8px",
+                        "stack-sm": "4px",
+                        "stack-md": "12px",
+                        "stack-lg": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "title-lg": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400" }],
+                        "title-lg": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "display-lg": ["57px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "0", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: theme('colors.background'); color: theme('colors.on-background'); }
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="antialiased min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky bg-surface dark:bg-surface flex items-center justify-between px-container-padding h-16 z-40 flat no shadows">
+<button class="text-secondary dark:text-secondary hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors active:scale-95 duration-200 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">menu</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-secondary dark:text-secondary tracking-tight">Bóveda Personal</h1>
+<button class="text-secondary dark:text-secondary hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors active:scale-95 duration-200 p-1 rounded-full flex items-center justify-center">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-[20px]">person</span>
+</div>
+</button>
+</header>
+<main class="px-container-padding py-stack-md flex flex-col gap-stack-lg max-w-2xl mx-auto">
+<!-- Search & Filter -->
+<section class="flex gap-3">
+<div class="flex-1 glass-panel rounded-xl h-14 flex items-center px-4 focus-within:ring-1 focus-within:ring-secondary transition-all">
+<span class="material-symbols-outlined text-on-surface-variant mr-3">search</span>
+<input class="w-full bg-transparent border-none outline-none font-body-lg text-body-lg text-on-surface placeholder-on-surface-variant p-0 focus:ring-0" placeholder="Buscar movimientos..." type="text"/>
+</div>
+<button class="h-14 w-14 glass-panel rounded-xl flex items-center justify-center text-on-surface hover:bg-surface-container-highest active:scale-95 transition-all">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</section>
+<!-- Time Segmentation Chips -->
+<section class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+<button class="px-6 py-2 rounded-full glass-panel font-label-lg text-label-lg text-on-surface-variant whitespace-nowrap active:scale-95 transition-transform">Día</button>
+<button class="px-6 py-2 rounded-full glass-panel font-label-lg text-label-lg text-on-surface-variant whitespace-nowrap active:scale-95 transition-transform">Semana</button>
+<button class="px-6 py-2 rounded-full bg-secondary text-on-secondary-fixed font-label-lg text-label-lg whitespace-nowrap active:scale-95 transition-transform shadow-[0_4px_12px_rgba(233,195,73,0.15)]">Mes</button>
+<button class="px-6 py-2 rounded-full glass-panel font-label-lg text-label-lg text-on-surface-variant whitespace-nowrap active:scale-95 transition-transform">Año</button>
+</section>
+<!-- Transactions List -->
+<section class="flex flex-col gap-stack-lg">
+<!-- Date Group 1 -->
+<div>
+<h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-stack-md ml-2">24 Octubre 2023</h2>
+<div class="glass-panel rounded-2xl flex flex-col overflow-hidden">
+<!-- Transaction Item -->
+<div class="flex items-center justify-between p-4 min-h-[72px] border-b border-white/5 last:border-0 hover:bg-surface-container-high/50 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-weight="fill">restaurant</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-lg text-[16px] leading-tight text-on-surface mb-1">Restaurante El Ciervo</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Alimentación</span>
+</div>
+</div>
+<span class="font-label-lg text-[16px] text-on-surface">-€85.50</span>
+</div>
+<!-- Transaction Item -->
+<div class="flex items-center justify-between p-4 min-h-[72px] border-b border-white/5 last:border-0 hover:bg-surface-container-high/50 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-weight="fill">local_taxi</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-lg text-[16px] leading-tight text-on-surface mb-1">Uber Trip</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Transporte</span>
+</div>
+</div>
+<span class="font-label-lg text-[16px] text-on-surface">-€18.20</span>
+</div>
+</div>
+</div>
+<!-- Date Group 2 -->
+<div>
+<h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-stack-md ml-2">23 Octubre 2023</h2>
+<div class="glass-panel rounded-2xl flex flex-col overflow-hidden">
+<!-- Transaction Item -->
+<div class="flex items-center justify-between p-4 min-h-[72px] border-b border-white/5 last:border-0 hover:bg-surface-container-high/50 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined" data-weight="fill">account_balance</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-lg text-[16px] leading-tight text-on-surface mb-1">Nómina Octubre</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Ingresos</span>
+</div>
+</div>
+<span class="font-label-lg text-[16px] text-tertiary">+€3,450.00</span>
+</div>
+<!-- Transaction Item -->
+<div class="flex items-center justify-between p-4 min-h-[72px] border-b border-white/5 last:border-0 hover:bg-surface-container-high/50 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-weight="fill">shopping_cart</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-lg text-[16px] leading-tight text-on-surface mb-1">Supermercado</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Compras</span>
+</div>
+</div>
+<span class="font-label-lg text-[16px] text-on-surface">-€124.90</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden bg-surface-container-lowest/80 dark:bg-surface-container-lowest/80 backdrop-blur-xl border-t border-white/5 shadow-[0_-4px_20px_rgba(233,195,73,0.05)] fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 rounded-t-xl">
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-5 py-1 hover:text-secondary dark:hover:text-secondary active:scale-90 transition-transform duration-150">
+<span class="material-symbols-outlined text-[24px] mb-1">home</span>
+<span class="font-label-md text-label-md">Inicio</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-5 py-1 hover:text-secondary dark:hover:text-secondary active:scale-90 transition-transform duration-150">
+<span class="material-symbols-outlined text-[24px] mb-1">add</span>
+<span class="font-label-md text-label-md">Nuevo</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary-container text-on-secondary-container dark:text-on-secondary-container rounded-full px-5 py-1 active:scale-90 transition-transform duration-150">
+<span class="material-symbols-outlined text-[24px] mb-1" data-weight="fill">history</span>
+<span class="font-label-md text-label-md">Históricos</span>
+</button>
+</nav>
+</body></html>

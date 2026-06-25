@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Simulador Financiero</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#121c2a",
+                        "on-primary-container": "#7b7979",
+                        "tertiary": "#4edea3",
+                        "on-secondary-fixed-variant": "#574500",
+                        "secondary-fixed-dim": "#e9c349",
+                        "error": "#ffb4ab",
+                        "on-background": "#d9e3f6",
+                        "surface-container": "#16202e",
+                        "on-surface": "#d9e3f6",
+                        "surface-container-lowest": "#050f1c",
+                        "on-primary-fixed": "#1c1b1b",
+                        "on-tertiary-fixed": "#002113",
+                        "on-secondary": "#3c2f00",
+                        "surface-dim": "#091421",
+                        "tertiary-container": "#000d06",
+                        "surface-tint": "#c9c6c5",
+                        "on-tertiary": "#003824",
+                        "on-secondary-container": "#342800",
+                        "on-error": "#690005",
+                        "primary-fixed-dim": "#c9c6c5",
+                        "on-error-container": "#ffdad6",
+                        "background": "#091421",
+                        "surface": "#091421",
+                        "error-container": "#93000a",
+                        "tertiary-fixed": "#6ffbbe",
+                        "primary-fixed": "#e5e2e1",
+                        "surface-variant": "#2b3544",
+                        "outline": "#8e9192",
+                        "surface-container-high": "#212b39",
+                        "inverse-surface": "#d9e3f6",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "on-tertiary-container": "#008b5f",
+                        "inverse-primary": "#5f5e5e",
+                        "secondary-container": "#af8d11",
+                        "primary": "#c9c6c5",
+                        "inverse-on-surface": "#27313f",
+                        "secondary": "#e9c349",
+                        "surface-container-highest": "#2b3544",
+                        "on-secondary-fixed": "#241a00",
+                        "primary-container": "#0a0a0a",
+                        "on-primary": "#313030",
+                        "surface-bright": "#303a48",
+                        "secondary-fixed": "#ffe088",
+                        "on-surface-variant": "#c4c7c7",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "on-primary-fixed-variant": "#474646",
+                        "outline-variant": "#444748"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "4px",
+                        "base": "8px",
+                        "stack-md": "12px",
+                        "gutter": "16px",
+                        "container-padding": "20px",
+                        "stack-lg": "24px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "title-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "0", "fontWeight": "600" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "display-lg": ["57px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400" }],
+                        "title-lg": ["22px", { "lineHeight": "28px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Custom Input Styling */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #e9c349;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(233, 195, 73, 0.4);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-glass {
+            background: rgba(255, 255, 255, 0.08);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .input-glass:focus-within {
+            border-bottom-color: #e9c349;
+            background: rgba(255, 255, 255, 0.12);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col font-sans antialiased selection:bg-secondary/30 selection:text-secondary">
+<!-- TopAppBar -->
+<!-- Content: Linear/Transactional task, suppressing BottomNavBar/SideNav per logic rules -->
+<header class="w-full top-0 sticky bg-surface dark:bg-surface flex items-center justify-between px-container-padding h-16 z-50">
+<button aria-label="Volver" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors active:scale-95 duration-200 text-secondary dark:text-secondary" onclick="location.href='{{DATA:SCREEN:SCREEN_21}}'">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-secondary dark:text-secondary tracking-tight">Simulador</h1>
+<div class="w-10"></div> <!-- Spacer for center alignment -->
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 px-container-padding pb-stack-lg flex flex-col gap-stack-lg overflow-y-auto">
+<!-- Header Text -->
+<div class="pt-stack-md">
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                Proyecta tu crecimiento financiero ajustando tus variables iniciales.
+            </p>
+</div>
+<!-- Simulator Form Panel -->
+<form class="flex flex-col gap-stack-lg">
+<!-- Currency Selection -->
+<div class="glass-card rounded-xl p-stack-md">
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-stack-sm">Moneda de Proyección</label>
+<div class="flex bg-surface-container-high rounded-lg p-1">
+<label class="flex-1 text-center cursor-pointer">
+<input checked="" class="peer sr-only" name="currency" type="radio" value="ARS"/>
+<div class="py-2 rounded-md font-label-lg text-label-lg text-on-surface-variant peer-checked:bg-secondary peer-checked:text-on-secondary transition-colors">
+                            ARS ($)
+                        </div>
+</label>
+<label class="flex-1 text-center cursor-pointer">
+<input class="peer sr-only" name="currency" type="radio" value="USD"/>
+<div class="py-2 rounded-md font-label-lg text-label-lg text-on-surface-variant peer-checked:bg-secondary peer-checked:text-on-secondary transition-colors">
+                            USD (U$D)
+                        </div>
+</label>
+</div>
+</div>
+<!-- Input Fields Group -->
+<div class="glass-card rounded-xl p-stack-md flex flex-col gap-stack-md">
+<!-- Saldo Inicial -->
+<div class="flex flex-col gap-stack-sm">
+<label class="font-label-lg text-label-lg text-on-surface-variant" for="initialBalance">Saldo Inicial</label>
+<div class="input-glass rounded-t-lg flex items-center px-4 py-3 relative">
+<span class="text-secondary font-title-lg text-title-lg mr-2">$</span>
+<input class="bg-transparent border-none outline-none w-full font-title-lg text-title-lg text-on-surface focus:ring-0 p-0 placeholder-on-surface-variant/50" id="initialBalance" placeholder="0.00" type="number" value="100000"/>
+</div>
+</div>
+<div class="w-full h-px bg-white/5 my-stack-sm"></div>
+<!-- Ahorro Mensual Estimado -->
+<div class="flex flex-col gap-stack-sm">
+<label class="font-label-lg text-label-lg text-on-surface-variant" for="monthlySavings">Ahorro Mensual Estimado</label>
+<div class="input-glass rounded-t-lg flex items-center px-4 py-3 relative">
+<span class="text-secondary font-title-lg text-title-lg mr-2">$</span>
+<input class="bg-transparent border-none outline-none w-full font-title-lg text-title-lg text-on-surface focus:ring-0 p-0 placeholder-on-surface-variant/50" id="monthlySavings" placeholder="0.00" type="number" value="25000"/>
+</div>
+</div>
+</div>
+<!-- Time Slider Group -->
+<div class="glass-card rounded-xl p-stack-md flex flex-col gap-stack-lg">
+<div class="flex justify-between items-end">
+<label class="font-label-lg text-label-lg text-on-surface-variant" for="timeProjection">Tiempo de Proyección</label>
+<div class="font-headline-lg-mobile text-headline-lg-mobile text-secondary flex items-baseline gap-1">
+<span id="timeValueDisplay">5</span>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Años</span>
+</div>
+</div>
+<div class="relative w-full pt-4">
+<input class="w-full h-1 bg-surface-container-high rounded-full appearance-none outline-none accent-secondary" id="timeProjection" max="30" min="1" type="range" value="5"/>
+<div class="flex justify-between mt-2 px-1">
+<span class="font-label-md text-label-md text-on-surface-variant">1 año</span>
+<span class="font-label-md text-label-md text-on-surface-variant">30 años</span>
+</div>
+</div>
+</div>
+</form>
+<div class="flex-1"></div> <!-- Spacer -->
+<!-- Bottom Actions & Helper -->
+<div class="mt-auto flex flex-col gap-stack-md pt-stack-lg">
+<div class="flex items-start gap-3 bg-surface-container-low p-4 rounded-lg border border-white/5">
+<span class="material-symbols-outlined text-secondary opacity-80" data-icon="info">info</span>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed opacity-80">
+                    Los resultados de este simulador son proyecciones basadas en tasas estimadas e información histórica. No constituyen asesoramiento financiero ni garantizan rendimientos futuros.
+                </p>
+</div>
+<button class="w-full bg-secondary text-on-secondary font-title-lg text-title-lg py-4 rounded-xl shadow-[0_4px_20px_rgba(233,195,73,0.15)] hover:bg-secondary-fixed transition-all active:scale-[0.98] flex justify-center items-center gap-2" onclick="location.href='{{DATA:SCREEN:SCREEN_26}}'" type="button">
+                Calcular Proyección
+                <span class="material-symbols-outlined" data-icon="trending_up">trending_up</span>
+</button>
+</div>
+</main>
+<script>
+        // Simple script to update slider value display
+        const timeSlider = document.getElementById('timeProjection');
+        const timeDisplay = document.getElementById('timeValueDisplay');
+
+        timeSlider.addEventListener('input', function() {
+            timeDisplay.textContent = this.value;
+        });
+    </script>
+</body></html>

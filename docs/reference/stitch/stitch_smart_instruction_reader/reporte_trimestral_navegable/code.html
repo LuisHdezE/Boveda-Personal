@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Reporte Trimestral - Bóveda Personal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#2b3544",
+                        "primary-container": "#0a0a0a",
+                        "tertiary-container": "#000d06",
+                        "on-primary-fixed": "#1c1b1b",
+                        "secondary-fixed-dim": "#e9c349",
+                        "secondary-fixed": "#ffe088",
+                        "on-secondary-container": "#342800",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "on-tertiary": "#003824",
+                        "outline-variant": "#444748",
+                        "error": "#ffb4ab",
+                        "on-secondary": "#3c2f00",
+                        "on-primary": "#313030",
+                        "tertiary": "#4edea3",
+                        "error-container": "#93000a",
+                        "surface": "#091421",
+                        "on-primary-fixed-variant": "#474646",
+                        "surface-tint": "#c9c6c5",
+                        "on-secondary-fixed-variant": "#574500",
+                        "on-surface-variant": "#c4c7c7",
+                        "inverse-surface": "#d9e3f6",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-lowest": "#050f1c",
+                        "on-error": "#690005",
+                        "background": "#091421",
+                        "secondary-container": "#af8d11",
+                        "primary": "#c9c6c5",
+                        "outline": "#8e9192",
+                        "surface-container-low": "#121c2a",
+                        "inverse-on-surface": "#27313f",
+                        "surface-variant": "#2b3544",
+                        "on-primary-container": "#7b7979",
+                        "surface-container": "#16202e",
+                        "surface-container-high": "#212b39",
+                        "primary-fixed": "#e5e2e1",
+                        "primary-fixed-dim": "#c9c6c5",
+                        "tertiary-fixed": "#6ffbbe",
+                        "surface-bright": "#303a48",
+                        "inverse-primary": "#5f5e5e",
+                        "on-tertiary-container": "#008b5f",
+                        "surface-dim": "#091421",
+                        "on-tertiary-fixed": "#002113",
+                        "secondary": "#e9c349",
+                        "on-background": "#d9e3f6",
+                        "on-surface": "#d9e3f6",
+                        "on-secondary-fixed": "#241a00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "12px",
+                        "container-padding": "20px",
+                        "base": "8px",
+                        "gutter": "16px",
+                        "stack-lg": "24px",
+                        "stack-sm": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "title-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "0", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "display-lg": ["57px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "title-lg": ["22px", { "lineHeight": "28px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #0a0a0a; /* primary-container per requirement */
+            color: #d9e3f6;
+            margin: 0;
+            padding-bottom: 80px; /* Space for BottomNavBar */
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .text-gold { color: #e9c349; }
+        .text-success { color: #4edea3; }
+        .text-danger { color: #ffb4ab; }
+        
+        /* Custom Chart Styles */
+        .chart-container {
+            position: relative;
+            height: 200px;
+            width: 100%;
+            margin-top: 24px;
+        }
+        .chart-svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+        .line-income {
+            fill: none;
+            stroke: #4edea3;
+            stroke-width: 3;
+            filter: drop-shadow(0 4px 6px rgba(78, 222, 163, 0.3));
+        }
+        .line-expense {
+            fill: none;
+            stroke: #ffb4ab;
+            stroke-width: 3;
+            filter: drop-shadow(0 4px 6px rgba(255, 180, 171, 0.3));
+        }
+        .area-income {
+            fill: url(#incomeGradient);
+        }
+        .area-expense {
+            fill: url(#expenseGradient);
+        }
+        .grid-line {
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 1;
+        }
+        .axis-label {
+            fill: #c4c7c7;
+            font-family: 'Inter', sans-serif;
+            font-size: 10px;
+            font-weight: 500;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="antialiased font-body-lg text-body-lg">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky bg-surface dark:bg-surface flex items-center justify-between px-container-padding h-16 z-40">
+<button class="text-secondary dark:text-secondary hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors active:scale-95 duration-200 rounded-full p-2 flex items-center justify-center" onclick="location.href='{{DATA:SCREEN:SCREEN_21}}'">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-secondary dark:text-secondary tracking-tight">Reporte Trimestral</h1>
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border border-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="person">person</span>
+</div>
+</header>
+<main class="px-container-padding py-stack-lg space-y-stack-lg">
+<!-- Quarter Selector -->
+<section class="flex items-center justify-between glass-card rounded-xl p-4">
+<button class="text-on-surface-variant hover:text-secondary transition-colors" onclick="location.href='{{DATA:SCREEN:SCREEN_25}}'">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<div class="text-center">
+<h2 class="font-title-lg text-title-lg text-on-surface">Ene - Mar 2024</h2>
+<p class="font-label-md text-label-md text-on-surface-variant mt-1">Q1 Performance</p>
+</div>
+<button class="text-on-surface-variant hover:text-secondary transition-colors" onclick="location.href='{{DATA:SCREEN:SCREEN_20}}'">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</section>
+<!-- Summary Cards Bento Grid -->
+<section class="grid grid-cols-2 gap-base">
+<!-- Total Savings (Gold Focus) -->
+<div class="col-span-2 glass-card rounded-xl p-gutter flex flex-col justify-between h-32 relative overflow-hidden">
+<div class="absolute -right-4 -top-4 w-24 h-24 bg-secondary/10 rounded-full blur-2xl"></div>
+<div class="flex items-start justify-between z-10">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Ahorro Total del Trimestre</span>
+<span class="material-symbols-outlined text-secondary" data-icon="savings">savings</span>
+</div>
+<div class="z-10">
+<span class="font-headline-lg-mobile text-headline-lg-mobile text-secondary font-semibold">$12,450.00</span>
+<div class="flex items-center mt-1">
+<span class="material-symbols-outlined text-success text-[14px]" data-icon="trending_up">trending_up</span>
+<span class="font-label-md text-label-md text-success ml-1">+15% vs Q4</span>
+</div>
+</div>
+</div>
+<!-- Monthly Avg Expenses (Red Focus) -->
+<div class="glass-card rounded-xl p-stack-md flex flex-col justify-between h-28">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant">Promedio Gastos</span>
+<span class="material-symbols-outlined text-danger text-[18px]" data-icon="money_off">money_off</span>
+</div>
+<div>
+<span class="font-title-lg text-title-lg text-danger font-medium">$3,120</span>
+<p class="font-label-md text-label-md text-on-surface-variant mt-0.5">/ mes</p>
+</div>
+</div>
+<!-- Wealth Growth (Blue/Cyan focus, using tertiary for green/cyan vibe in this theme) -->
+<div class="glass-card rounded-xl p-stack-md flex flex-col justify-between h-28">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant">Crecimiento</span>
+<span class="material-symbols-outlined text-tertiary text-[18px]" data-icon="account_balance">account_balance</span>
+</div>
+<div>
+<span class="font-title-lg text-title-lg text-tertiary font-medium">+4.2%</span>
+<p class="font-label-md text-label-md text-on-surface-variant mt-0.5">Patrimonial</p>
+</div>
+</div>
+</section>
+<!-- Comparative Chart -->
+<section class="glass-card rounded-xl p-gutter">
+<div class="flex justify-between items-end mb-4">
+<h3 class="font-title-lg text-title-lg text-on-surface">Ingresos vs Gastos</h3>
+<div class="flex gap-4">
+<div class="flex items-center gap-1">
+<div class="w-2 h-2 rounded-full bg-tertiary"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Ing</span>
+</div>
+<div class="flex items-center gap-1">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Gto</span>
+</div>
+</div>
+</div>
+<div class="chart-container">
+<svg class="chart-svg" preserveaspectratio="none" viewbox="0 0 300 150">
+<defs>
+<lineargradient id="incomeGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#4edea3" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#4edea3" stop-opacity="0"></stop>
+</lineargradient>
+<lineargradient id="expenseGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#ffb4ab" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#ffb4ab" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<!-- Grid Lines -->
+<line class="grid-line" x1="0" x2="300" y1="25" y2="25"></line>
+<line class="grid-line" x1="0" x2="300" y1="75" y2="75"></line>
+<line class="grid-line" x1="0" x2="300" y1="125" y2="125"></line>
+<!-- Income Area & Line (Simulated data) -->
+<path class="area-income" d="M 0 125 L 0 60 C 50 60, 100 40, 150 45 C 200 50, 250 20, 300 25 L 300 125 Z"></path>
+<path class="line-income" d="M 0 60 C 50 60, 100 40, 150 45 C 200 50, 250 20, 300 25"></path>
+<!-- Expense Area & Line (Simulated data) -->
+<path class="area-expense" d="M 0 125 L 0 90 C 50 90, 100 80, 150 85 C 200 90, 250 70, 300 75 L 300 125 Z"></path>
+<path class="line-expense" d="M 0 90 C 50 90, 100 80, 150 85 C 200 90, 250 70, 300 75"></path>
+<!-- X-Axis Labels -->
+<text class="axis-label" x="0" y="145">ENE</text>
+<text class="axis-label" x="140" y="145">FEB</text>
+<text class="axis-label" x="280" y="145">MAR</text>
+</svg>
+</div>
+</section>
+<!-- Monthly Breakdown -->
+<section class="space-y-stack-md">
+<h3 class="font-title-lg text-title-lg text-on-surface px-1">Desglose Mensual</h3>
+<!-- January -->
+<div class="glass-card rounded-xl p-4">
+<div class="flex justify-between items-center mb-2">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Enero</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Presupuesto: 85%</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-1.5 mb-4">
+<div class="bg-secondary h-1.5 rounded-full" style="width: 85%"></div>
+</div>
+<div class="flex justify-between font-label-md text-label-md">
+<span class="text-success">+ $5,200</span>
+<span class="text-danger">- $3,400</span>
+</div>
+</div>
+<!-- February -->
+<div class="glass-card rounded-xl p-4">
+<div class="flex justify-between items-center mb-2">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Febrero</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Presupuesto: 92%</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-1.5 mb-4">
+<div class="bg-secondary h-1.5 rounded-full" style="width: 92%"></div>
+</div>
+<div class="flex justify-between font-label-md text-label-md">
+<span class="text-success">+ $4,800</span>
+<span class="text-danger">- $3,100</span>
+</div>
+</div>
+<!-- March -->
+<div class="glass-card rounded-xl p-4">
+<div class="flex justify-between items-center mb-2">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Marzo</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Presupuesto: 78%</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-1.5 mb-4">
+<div class="bg-secondary h-1.5 rounded-full" style="width: 78%"></div>
+</div>
+<div class="flex justify-between font-label-md text-label-md">
+<span class="text-success">+ $5,500</span>
+<span class="text-danger">- $2,860</span>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-surface-container-lowest/80 dark:bg-surface-container-lowest/80 backdrop-blur-xl rounded-t-xl border-t border-white/5 shadow-[0_-4px_20px_rgba(233,195,73,0.05)] md:hidden">
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-5 py-1 hover:text-secondary dark:hover:text-secondary active:scale-90 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md mt-1">Inicio</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-5 py-1 hover:text-secondary dark:hover:text-secondary active:scale-90 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+<span class="font-label-md text-label-md mt-1">Nuevo</span>
+</button>
+<!-- Historic/Reports mapped to Active State based on page intent (Quarterly Report) -->
+<button class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary-container text-on-secondary-container dark:text-on-secondary-container rounded-full px-5 py-1 active:scale-90 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="history" style="font-variation-settings: 'FILL' 1;">history</span>
+<span class="font-label-md text-label-md mt-1">Históricos</span>
+</button>
+</nav>
+</body></html>

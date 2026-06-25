@@ -1,0 +1,7 @@
+{
+  "@@locale": "es",
+  "appName": "Bóveda Personal",
+  "@appName": {
+    "description": "Nombre visible de la aplicación"
+  }
+}

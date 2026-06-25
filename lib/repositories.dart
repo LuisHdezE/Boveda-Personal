@@ -1,0 +1,11 @@
+export 'features/accounts/domain/repositories/account_repository.dart';
+export 'features/auth/domain/repositories/auth_repository.dart';
+export 'features/auth/domain/repositories/biometric_repository.dart';
+export 'features/categories/domain/repositories/category_repository.dart';
+export 'features/converter/domain/repositories/calculator_currency_repository.dart';
+export 'features/movements/domain/repositories/movement_repository.dart';
+export 'features/movements/domain/repositories/transfer_repository.dart';
+export 'features/onboarding/domain/repositories/onboarding_repository.dart';
+export 'features/rates/domain/repositories/exchange_rate_repository.dart';
+export 'features/settings/domain/repositories/settings_repository.dart';
+export 'features/simulator/domain/repositories/simulation_repository.dart';

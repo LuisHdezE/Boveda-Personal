@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Calculadora Universal - Bóveda Personal</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary": "#c9c6c5",
+                    "primary-container": "#0a0a0a",
+                    "on-tertiary-fixed": "#002113",
+                    "surface-container-high": "#212b39",
+                    "on-primary-fixed": "#1c1b1b",
+                    "inverse-on-surface": "#27313f",
+                    "secondary": "#e9c349",
+                    "on-secondary-fixed": "#241a00",
+                    "surface-container": "#16202e",
+                    "secondary-container": "#af8d11",
+                    "on-primary-fixed-variant": "#474646",
+                    "surface-bright": "#303a48",
+                    "surface-variant": "#2b3544",
+                    "on-secondary-fixed-variant": "#574500",
+                    "background": "#091421",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "inverse-surface": "#d9e3f6",
+                    "on-secondary-container": "#342800",
+                    "on-primary": "#313030",
+                    "on-background": "#d9e3f6",
+                    "primary-fixed-dim": "#c9c6c5",
+                    "secondary-fixed-dim": "#e9c349",
+                    "tertiary": "#4edea3",
+                    "on-surface-variant": "#c4c7c7",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "on-surface": "#d9e3f6",
+                    "on-primary-container": "#7b7979",
+                    "tertiary-container": "#000d06",
+                    "on-secondary": "#3c2f00",
+                    "inverse-primary": "#5f5e5e",
+                    "surface-container-lowest": "#050f1c",
+                    "primary-fixed": "#e5e2e1",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-tertiary": "#003824",
+                    "surface-container-low": "#121c2a",
+                    "outline-variant": "#444748",
+                    "error": "#ffb4ab",
+                    "surface-tint": "#c9c6c5",
+                    "on-error": "#690005",
+                    "error-container": "#93000a",
+                    "outline": "#8e9192",
+                    "on-tertiary-container": "#008b5f",
+                    "on-error-container": "#ffdad6",
+                    "surface-container-highest": "#2b3544",
+                    "surface": "#091421",
+                    "secondary-fixed": "#ffe088",
+                    "surface-dim": "#091421"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "4px",
+                    "stack-md": "12px",
+                    "base": "8px",
+                    "stack-lg": "24px",
+                    "container-padding": "20px",
+                    "gutter": "16px",
+                    "pb-safe": "env(safe-area-inset-bottom)"
+            },
+            "fontFamily": {
+                    "title-lg": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "label-md": ["Inter"]
+            },
+            "fontSize": {
+                    "title-lg": ["22px", {"lineHeight": "28px", "fontWeight": "500"}],
+                    "display-lg": ["57px", {"lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "0", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        /* Custom Utilities for Glassmorphism & Aesthetics */
+        .glass-surface {
+            background-color: rgba(255, 255, 255, 0.05); /* 5% white approx */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-input {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Subtle Gold Glow for Primary Elements */
+        .glow-secondary {
+            box-shadow: 0 0 40px rgba(233, 195, 73, 0.1);
+        }
+
+        /* Hide Scrollbar */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col relative pb-32">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky border-b border-white/5 backdrop-blur-xl bg-surface dark:bg-surface text-secondary dark:text-secondary font-title-lg text-title-lg flat no shadows flex justify-between items-center px-container-padding h-16 z-40">
+<button class="hover:opacity-80 transition-opacity scale-95 active:duration-100 flex items-center justify-center w-10 h-10 rounded-full text-on-surface-variant">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="font-display-lg text-headline-lg-mobile text-secondary uppercase tracking-widest text-center truncate px-4">
+            Financial Vault
+        </div>
+<button class="hover:opacity-80 transition-opacity scale-95 active:duration-100 flex items-center justify-center w-10 h-10 rounded-full overflow-hidden border border-white/10">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="A sophisticated macro photograph of a polished black obsidian sphere reflecting a solitary warm light, exuding an aura of minimal luxury and absolute security within a dark environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnD2LKCIL3XUjUa72KNl6CFAfOSpG20EN7-oKHv6RlWNSR1xd50lJpPsv5HM0Za1BVPRZyNFNemXKqrOqe_wH4eUSA3MyJUSmzeG8C72Txreo9rOmnSURAXLTfytX8jDcYv8ZHWBF-cjEgIL3FdfqYB2TUXbYB5jw5cdfvMX7rx7s6Xl6tt0t-jTCajcocLf7UdFQ_3YDx9lace2XkXA570e8GgIlsUVEc4uR_mKLPV0w9zZiIMxEZIzfp9wXwxuxhKV0gZYsuAW8"/>
+</button>
+</header>
+<!-- Main Content -->
+<main class="flex-1 px-container-padding pt-stack-lg pb-stack-lg max-w-4xl mx-auto w-full">
+<!-- Screen Title -->
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-stack-md">Calculadora Universal</h1>
+<p class="font-body-md text-on-surface-variant mb-stack-lg">Conversión en tiempo real sin impacto en saldos.</p>
+<!-- Search Bar -->
+<div class="relative mb-stack-lg group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-secondary transition-colors">search</span>
+<input class="w-full h-12 glass-surface rounded-full pl-12 pr-4 text-on-surface font-body-lg placeholder:text-on-surface-variant/50 focus:outline-none focus:border-secondary/50 focus:ring-1 focus:ring-secondary/50 transition-all" placeholder="Buscar moneda (ej. JPY, EUR)..." type="text"/>
+</div>
+<!-- Base Currency Card (The "Vault" Input) -->
+<section class="glass-surface rounded-2xl p-stack-lg mb-stack-lg glow-secondary relative overflow-hidden">
+<!-- Decorative subtle gradient -->
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-secondary/30 to-transparent"></div>
+<div class="flex justify-between items-start mb-stack-sm">
+<span class="font-label-md text-on-surface-variant uppercase tracking-widest">Importe Base</span>
+<button class="flex items-center gap-1 text-on-surface font-label-lg bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 hover:bg-white/10 transition-colors">
+<span>USD</span>
+<span class="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
+</button>
+</div>
+<div class="relative mt-2">
+<span class="absolute left-0 bottom-3 font-headline-lg text-secondary/50">$</span>
+<input class="w-full bg-transparent text-display-lg text-secondary font-display-lg pl-8 pb-2 border-b border-white/10 focus:border-secondary focus:outline-none transition-colors appearance-none" style="-moz-appearance: textfield;" type="number" value="12500"/>
+</div>
+<div class="mt-3 flex justify-between items-center text-on-surface-variant">
+<span class="font-body-md">Dólar Estadounidense</span>
+<span class="font-label-md">1.00 USD = Base</span>
+</div>
+</section>
+<!-- Conversion List -->
+<section class="flex flex-col gap-stack-md">
+<h2 class="font-label-md text-on-surface-variant uppercase tracking-widest mb-2 pl-2">Conversiones Activas</h2>
+<!-- Currency Item: EUR -->
+<div class="glass-surface rounded-xl flex items-center p-4 min-h-[72px] transition-transform hover:scale-[1.01] cursor-default">
+<div class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mr-4">
+<span class="font-label-lg text-on-surface">€</span>
+</div>
+<div class="flex-1">
+<div class="font-label-lg text-on-surface">EUR</div>
+<div class="font-body-md text-on-surface-variant">Euro</div>
+</div>
+<div class="text-right">
+<div class="font-headline-lg-mobile text-on-surface">11,562.50</div>
+<div class="font-label-md text-on-surface-variant mt-1">Tasa: 0.925</div>
+</div>
+</div>
+<!-- Currency Item: JPY -->
+<div class="glass-surface rounded-xl flex items-center p-4 min-h-[72px] transition-transform hover:scale-[1.01] cursor-default">
+<div class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mr-4">
+<span class="font-label-lg text-on-surface">¥</span>
+</div>
+<div class="flex-1">
+<div class="font-label-lg text-on-surface">JPY</div>
+<div class="font-body-md text-on-surface-variant">Yen Japonés</div>
+</div>
+<div class="text-right">
+<div class="font-headline-lg-mobile text-on-surface">1,885,625</div>
+<div class="font-label-md text-on-surface-variant mt-1">Tasa: 150.85</div>
+</div>
+</div>
+<!-- Currency Item: GBP -->
+<div class="glass-surface rounded-xl flex items-center p-4 min-h-[72px] transition-transform hover:scale-[1.01] cursor-default">
+<div class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mr-4">
+<span class="font-label-lg text-on-surface">£</span>
+</div>
+<div class="flex-1">
+<div class="font-label-lg text-on-surface">GBP</div>
+<div class="font-body-md text-on-surface-variant">Libra Esterlina</div>
+</div>
+<div class="text-right">
+<div class="font-headline-lg-mobile text-on-surface">9,812.50</div>
+<div class="font-label-md text-on-surface-variant mt-1">Tasa: 0.785</div>
+</div>
+</div>
+<!-- Add Currency Button (Inline Secondary Action) -->
+<button class="w-full mt-stack-md py-4 glass-surface rounded-xl text-on-surface font-label-lg flex items-center justify-center gap-2 hover:bg-white/10 transition-colors group">
+<span class="material-symbols-outlined text-secondary group-hover:scale-110 transition-transform">add_circle</span>
+<span>Agregar Moneda a la Vista</span>
+</button>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 w-full z-50 backdrop-blur-2xl bg-surface/80 dark:bg-surface/80 text-secondary dark:text-secondary font-label-md text-label-md border-t border-white/10 shadow-[0_-4px_20px_rgba(233,195,73,0.05)] flex justify-around items-center h-20 pb-safe md:hidden transition-all duration-300 ease-in-out">
+<!-- Tab 1: Inicio (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-secondary/80 w-full h-full" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">home</span>
+<span>Inicio</span>
+</a>
+<!-- Tab 2: Nuevo (Active conceptually for "Tool/Calculation") -->
+<a class="flex flex-col items-center justify-center text-secondary font-bold hover:text-secondary/80 w-full h-full" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+<span>Nuevo</span>
+</a>
+<!-- Tab 3: Historial (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-secondary/80 w-full h-full" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">history</span>
+<span>Historial</span>
+</a>
+</nav>
+<script>
+        // Simple script to format the input number nicely when leaving focus, 
+        // though typically a real app would handle this Reactively.
+        const input = document.querySelector('input[type="number"]');
+        
+        // Remove up/down arrows from number input via CSS, but handle basic focus styling
+        input.addEventListener('focus', () => {
+            input.parentElement.parentElement.classList.add('border-secondary/50');
+        });
+        input.addEventListener('blur', () => {
+            input.parentElement.parentElement.classList.remove('border-secondary/50');
+        });
+    </script>
+</body></html>

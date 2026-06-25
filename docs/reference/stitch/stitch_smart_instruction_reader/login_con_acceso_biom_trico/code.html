@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bóveda Personal - Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#8e9192",
+                        "error": "#ffb4ab",
+                        "primary": "#c9c6c5",
+                        "on-primary-fixed": "#1c1b1b",
+                        "inverse-surface": "#d9e3f6",
+                        "surface-container-highest": "#2b3544",
+                        "error-container": "#93000a",
+                        "on-secondary-container": "#342800",
+                        "surface-tint": "#c9c6c5",
+                        "secondary-fixed-dim": "#e9c349",
+                        "on-secondary": "#3c2f00",
+                        "on-primary-fixed-variant": "#474646",
+                        "on-error": "#690005",
+                        "surface-bright": "#303a48",
+                        "primary-container": "#0a0a0a",
+                        "primary-fixed-dim": "#c9c6c5",
+                        "surface-dim": "#091421",
+                        "on-surface": "#d9e3f6",
+                        "inverse-on-surface": "#27313f",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "surface-container-high": "#212b39",
+                        "on-background": "#d9e3f6",
+                        "on-tertiary-fixed": "#002113",
+                        "tertiary-container": "#000d06",
+                        "tertiary-fixed": "#6ffbbe",
+                        "background": "#091421",
+                        "outline-variant": "#444748",
+                        "tertiary": "#4edea3",
+                        "on-primary-container": "#7b7979",
+                        "on-secondary-fixed-variant": "#574500",
+                        "surface-container-low": "#121c2a",
+                        "on-tertiary": "#003824",
+                        "inverse-primary": "#5f5e5e",
+                        "on-surface-variant": "#c4c7c7",
+                        "on-primary": "#313030",
+                        "secondary": "#e9c349",
+                        "surface": "#091421",
+                        "surface-container-lowest": "#050f1c",
+                        "surface-container": "#16202e",
+                        "secondary-fixed": "#ffe088",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "secondary-container": "#af8d11",
+                        "primary-fixed": "#e5e2e1",
+                        "surface-variant": "#2b3544",
+                        "on-secondary-fixed": "#241a00",
+                        "on-tertiary-container": "#008b5f",
+                        "on-error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "stack-md": "12px",
+                        "stack-sm": "4px",
+                        "stack-lg": "24px",
+                        "container-padding": "20px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "title-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400" }],
+                        "display-lg": ["57px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "0", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "title-lg": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+        
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-focus-ring:focus-within {
+            border-bottom-color: theme('colors.secondary');
+        }
+        
+        .input-focus-ring:focus-within .material-symbols-outlined {
+            color: theme('colors.secondary');
+        }
+        
+        .input-focus-ring:focus-within label {
+            color: theme('colors.secondary');
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-container-padding relative overflow-hidden">
+<!-- Subtle Background Elements -->
+<div class="absolute inset-0 z-0 pointer-events-none">
+<div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-secondary opacity-5 blur-[100px]"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-tertiary opacity-5 blur-[100px]"></div>
+</div>
+<!-- Main Content Canvas -->
+<main class="w-full max-w-[400px] z-10 flex flex-col gap-stack-lg">
+<!-- Logo Section -->
+<div class="flex flex-col items-center gap-stack-md mb-stack-lg">
+<div class="w-16 h-16 rounded-full glass-panel flex items-center justify-center mb-stack-sm">
+<span class="material-symbols-outlined text-secondary" style="font-size: 32px; font-variation-settings: 'FILL' 1;">
+                    shield_lock
+                </span>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-background tracking-tight text-center">Bóveda Personal</h1>
+<p class="font-body-md text-body-md text-on-surface-variant text-center">Ingresa para acceder a tu patrimonio</p>
+</div>
+<!-- Login Form -->
+<form class="glass-panel rounded-xl p-container-padding flex flex-col gap-stack-lg w-full">
+<div class="flex flex-col gap-stack-md">
+<!-- Username Input -->
+<div class="relative bg-white/5 rounded-t-lg border-b border-white/20 input-focus-ring transition-colors duration-200">
+<label class="absolute top-2 left-12 font-label-md text-label-md text-on-surface-variant transition-colors duration-200" for="username">Usuario</label>
+<div class="flex items-center px-4 pt-6 pb-2">
+<span class="material-symbols-outlined text-on-surface-variant mr-4 transition-colors duration-200">person</span>
+<input class="bg-transparent border-none p-0 m-0 w-full font-body-lg text-body-lg text-on-background focus:ring-0 placeholder-transparent" id="username" placeholder="Usuario" type="text"/>
+</div>
+</div>
+<!-- Password Input -->
+<div class="relative bg-white/5 rounded-t-lg border-b border-white/20 input-focus-ring transition-colors duration-200">
+<label class="absolute top-2 left-12 font-label-md text-label-md text-on-surface-variant transition-colors duration-200" for="password">Contraseña</label>
+<div class="flex items-center px-4 pt-6 pb-2">
+<span class="material-symbols-outlined text-on-surface-variant mr-4 transition-colors duration-200">key</span>
+<input class="bg-transparent border-none p-0 m-0 w-full font-body-lg text-body-lg text-on-background focus:ring-0 placeholder-transparent" id="password" placeholder="Contraseña" type="password"/>
+<button class="ml-2 text-on-surface-variant hover:text-secondary transition-colors" type="button">
+<span class="material-symbols-outlined">visibility_off</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-col gap-stack-md mt-stack-sm">
+<button class="w-full bg-secondary text-on-secondary font-label-lg text-label-lg rounded-full py-3 px-4 shadow-[0_4px_20px_rgba(233,195,73,0.15)] hover:bg-secondary-fixed transition-colors active:scale-95 duration-200" type="button">
+        Ingresar
+    </button>
+<div class="flex flex-col items-center gap-stack-sm mt-stack-md">
+<button aria-label="Ingreso Biométrico" class="w-full rounded-full glass-panel flex items-center justify-center gap-3 py-3 px-4 hover:bg-white/10 transition-colors active:scale-95 duration-200 group border border-secondary/30" type="button">
+<span class="material-symbols-outlined text-secondary group-hover:text-secondary-fixed transition-colors">fingerprint</span>
+<span class="font-label-lg text-label-lg text-on-surface group-hover:text-white transition-colors">Ingresar con huella</span>
+</button>
+<p class="font-body-md text-label-md text-on-surface-variant text-center">Usa tu huella para entrar rápido</p>
+</div>
+<div class="flex justify-center mt-stack-md">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-secondary transition-colors" href="#">¿Olvidé mi contraseña?</a>
+</div>
+</div>
+</form>
+</main>
+</body></html>
