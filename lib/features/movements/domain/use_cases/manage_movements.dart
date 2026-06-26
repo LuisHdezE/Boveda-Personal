@@ -23,14 +23,8 @@ class ListMovements {
   const ListMovements(this.repository);
   final MovementRepository repository;
 
-  Future<List<Movement>> call({
-    MovementFilter? filter,
-    PageRequest? page,
-  }) {
-    return repository.list(
-      filter ?? MovementFilter(),
-      page ?? PageRequest(),
-    );
+  Future<List<Movement>> call({MovementFilter? filter, PageRequest? page}) {
+    return repository.list(filter ?? MovementFilter(), page ?? PageRequest());
   }
 }
 
@@ -62,8 +56,9 @@ class UpdateMovement {
     if (movement.type == MovementType.income ||
         movement.type == MovementType.expense) {
       final categoryId = movement.categoryId;
-      final category =
-          categoryId == null ? null : await categories.findById(categoryId);
+      final category = categoryId == null
+          ? null
+          : await categories.findById(categoryId);
       if (category == null ||
           !category.isActive ||
           !category.supports(movement.type.name)) {

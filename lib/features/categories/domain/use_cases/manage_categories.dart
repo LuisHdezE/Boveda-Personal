@@ -10,10 +10,7 @@ class ListCategories {
     CategoryMovementType? movementType,
     bool activeOnly = true,
   }) {
-    return repository.list(
-      movementType: movementType,
-      activeOnly: activeOnly,
-    );
+    return repository.list(movementType: movementType, activeOnly: activeOnly);
   }
 }
 

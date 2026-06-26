@@ -33,7 +33,8 @@ class BuildDashboard {
     final balances = await accounts.balances();
     var total = Money.zero(primaryCurrency);
     for (final balance in balances) {
-      total = total +
+      total =
+          total +
           await converter.convert(
             balance.balance,
             target: primaryCurrency,
@@ -72,9 +73,7 @@ class BuildDashboard {
       monthlyIncome: income,
       monthlyExpense: expense,
       recentMovementIds: recent.map((movement) => movement.id).toList(),
-      wealthEvolution: [
-        WealthPoint(at: instant, value: total),
-      ],
+      wealthEvolution: [WealthPoint(at: instant, value: total)],
       calculatedAt: instant,
     );
   }

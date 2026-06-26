@@ -8,13 +8,7 @@ enum BiometricAvailability {
   permanentlyLocked,
 }
 
-enum BiometricKind {
-  fingerprint,
-  face,
-  iris,
-  strong,
-  weak,
-}
+enum BiometricKind { fingerprint, face, iris, strong, weak }
 
 class BiometricStatus {
   factory BiometricStatus({
@@ -55,7 +49,7 @@ class BiometricStatus {
 
   @override
   int get hashCode => Object.hash(
-        availability,
-        const SetEquality<BiometricKind>().hash(supportedTypes),
-      );
+    availability,
+    const SetEquality<BiometricKind>().hash(supportedTypes),
+  );
 }

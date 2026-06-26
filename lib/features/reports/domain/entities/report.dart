@@ -34,8 +34,7 @@ class CategoryBreakdown {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(categoryId, categoryName, amount, percentage);
+  int get hashCode => Object.hash(categoryId, categoryName, amount, percentage);
 }
 
 class CashFlowPoint {
@@ -68,19 +67,14 @@ class CashFlowPoint {
 }
 
 class NetWorthPoint {
-  const NetWorthPoint({
-    required this.at,
-    required this.value,
-  });
+  const NetWorthPoint({required this.at, required this.value});
 
   final DateTime at;
   final Money value;
 
   @override
   bool operator ==(Object other) {
-    return other is NetWorthPoint &&
-        other.at == at &&
-        other.value == value;
+    return other is NetWorthPoint && other.at == at && other.value == value;
   }
 
   @override
@@ -97,9 +91,9 @@ class FinancialReport {
     required List<CategoryBreakdown> categoryBreakdown,
     required List<CashFlowPoint> cashFlow,
     required List<NetWorthPoint> netWorth,
-  })  : categoryBreakdown = List.unmodifiable(categoryBreakdown),
-        cashFlow = List.unmodifiable(cashFlow),
-        netWorth = List.unmodifiable(netWorth) {
+  }) : categoryBreakdown = List.unmodifiable(categoryBreakdown),
+       cashFlow = List.unmodifiable(cashFlow),
+       netWorth = List.unmodifiable(netWorth) {
     if (income.currency != currency || expense.currency != currency) {
       throw ArgumentError('Report totals must use report currency');
     }
@@ -152,15 +146,15 @@ class FinancialReport {
 
   @override
   int get hashCode => Object.hash(
-        period,
-        currency,
-        income,
-        expense,
-        savingsRate,
-        const ListEquality<CategoryBreakdown>().hash(categoryBreakdown),
-        const ListEquality<CashFlowPoint>().hash(cashFlow),
-        const ListEquality<NetWorthPoint>().hash(netWorth),
-      );
+    period,
+    currency,
+    income,
+    expense,
+    savingsRate,
+    const ListEquality<CategoryBreakdown>().hash(categoryBreakdown),
+    const ListEquality<CashFlowPoint>().hash(cashFlow),
+    const ListEquality<NetWorthPoint>().hash(netWorth),
+  );
 }
 
 bool _dateRangesOrdered(Iterable<DateRange> ranges) {

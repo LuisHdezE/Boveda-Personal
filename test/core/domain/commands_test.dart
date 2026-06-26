@@ -68,10 +68,7 @@ void main() {
   });
 
   test('SET-002 perfil normaliza espacios externos', () {
-    final update = ProfileUpdate(
-      displayName: '  Luis  ',
-      username: '  luis  ',
-    );
+    final update = ProfileUpdate(displayName: '  Luis  ', username: '  luis  ');
 
     expect(update.displayName, 'Luis');
     expect(update.username, 'luis');

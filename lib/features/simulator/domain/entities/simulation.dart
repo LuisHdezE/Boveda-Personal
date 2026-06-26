@@ -42,12 +42,12 @@ class SimulationInput {
 
   @override
   int get hashCode => Object.hash(
-        initialBalance,
-        monthlyIncome,
-        monthlyExpense,
-        durationMonths,
-        startsAt,
-      );
+    initialBalance,
+    monthlyIncome,
+    monthlyExpense,
+    durationMonths,
+    startsAt,
+  );
 }
 
 class ProjectionPoint {
@@ -78,10 +78,8 @@ class ProjectionPoint {
 }
 
 class SimulationResult {
-  SimulationResult({
-    required this.input,
-    required List<ProjectionPoint> points,
-  }) : points = List.unmodifiable(points) {
+  SimulationResult({required this.input, required List<ProjectionPoint> points})
+    : points = List.unmodifiable(points) {
     if (this.points.length != input.durationMonths) {
       throw ArgumentError('Projection must contain one point per month');
     }
@@ -111,8 +109,6 @@ class SimulationResult {
   }
 
   @override
-  int get hashCode => Object.hash(
-        input,
-        const ListEquality<ProjectionPoint>().hash(points),
-      );
+  int get hashCode =>
+      Object.hash(input, const ListEquality<ProjectionPoint>().hash(points));
 }

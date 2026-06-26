@@ -59,6 +59,5 @@ class _Hasher implements PasswordHasher {
     required String password,
     required String hash,
     required String salt,
-  }) async =>
-      password == 'correct' && hash == 'hash' && salt == 'salt';
+  }) async => password == 'correct' && hash == 'hash' && salt == 'salt';
 }

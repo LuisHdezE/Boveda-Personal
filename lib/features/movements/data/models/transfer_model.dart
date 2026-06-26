@@ -42,15 +42,15 @@ class TransferModel {
   Transfer toEntity() => entity;
 
   Map<String, Object?> toRow() => {
-        'id': entity.id,
-        'source_account_id': entity.sourceAccountId,
-        'destination_account_id': entity.destinationAccountId,
-        'source_amount_minor': entity.sourceAmount.minorUnits,
-        'destination_amount_minor': entity.destinationAmount.minorUnits,
-        'exchange_rate': entity.exchangeRate.toString(),
-        'occurred_at': RowConverters.dateToSql(entity.occurredAt),
-        'note': entity.note,
-        'created_at': RowConverters.dateToSql(entity.createdAt),
-        'updated_at': RowConverters.dateToSql(entity.updatedAt),
-      };
+    'id': entity.id,
+    'source_account_id': entity.sourceAccountId,
+    'destination_account_id': entity.destinationAccountId,
+    'source_amount_minor': entity.sourceAmount.minorUnits,
+    'destination_amount_minor': entity.destinationAmount.minorUnits,
+    'exchange_rate': entity.exchangeRate.toString(),
+    'occurred_at': RowConverters.dateToSql(entity.occurredAt),
+    'note': entity.note,
+    'created_at': RowConverters.dateToSql(entity.createdAt),
+    'updated_at': RowConverters.dateToSql(entity.updatedAt),
+  };
 }

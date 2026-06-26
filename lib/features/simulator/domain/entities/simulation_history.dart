@@ -39,13 +39,13 @@ class SimulationHistory {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        currency,
-        initialBalance,
-        monthlyIncome,
-        monthlyExpense,
-        durationMonths,
-        projectedBalance,
-        createdAt,
-      );
+    id,
+    currency,
+    initialBalance,
+    monthlyIncome,
+    monthlyExpense,
+    durationMonths,
+    projectedBalance,
+    createdAt,
+  );
 }

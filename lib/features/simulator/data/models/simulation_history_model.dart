@@ -47,14 +47,14 @@ class SimulationHistoryModel {
   SimulationHistory toEntity() => entity;
 
   Map<String, Object?> toRow() => {
-        'id': entity.id,
-        'currency_code': entity.currency.code,
-        'currency_scale': entity.currency.scale,
-        'initial_balance_minor': entity.initialBalance.minorUnits,
-        'monthly_income_minor': entity.monthlyIncome.minorUnits,
-        'monthly_expense_minor': entity.monthlyExpense.minorUnits,
-        'duration_months': entity.durationMonths,
-        'projected_balance_minor': entity.projectedBalance.minorUnits,
-        'created_at': RowConverters.dateToSql(entity.createdAt),
-      };
+    'id': entity.id,
+    'currency_code': entity.currency.code,
+    'currency_scale': entity.currency.scale,
+    'initial_balance_minor': entity.initialBalance.minorUnits,
+    'monthly_income_minor': entity.monthlyIncome.minorUnits,
+    'monthly_expense_minor': entity.monthlyExpense.minorUnits,
+    'duration_months': entity.durationMonths,
+    'projected_balance_minor': entity.projectedBalance.minorUnits,
+    'created_at': RowConverters.dateToSql(entity.createdAt),
+  };
 }

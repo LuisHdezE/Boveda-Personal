@@ -73,10 +73,7 @@ const _account = <String, Object?>{
   'updated_at': 1,
 };
 
-Map<String, Object?> _movement({
-  required String id,
-  required int occurredAt,
-}) {
+Map<String, Object?> _movement({required String id, required int occurredAt}) {
   return {
     'id': id,
     'account_id': 'usd',

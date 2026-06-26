@@ -40,8 +40,7 @@ class Transfer {
     return Transfer(
       id: id,
       sourceAccountId: sourceAccountId ?? this.sourceAccountId,
-      destinationAccountId:
-          destinationAccountId ?? this.destinationAccountId,
+      destinationAccountId: destinationAccountId ?? this.destinationAccountId,
       sourceAmount: sourceAmount ?? this.sourceAmount,
       destinationAmount: destinationAmount ?? this.destinationAmount,
       exchangeRate: exchangeRate ?? this.exchangeRate,
@@ -69,15 +68,15 @@ class Transfer {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        sourceAccountId,
-        destinationAccountId,
-        sourceAmount,
-        destinationAmount,
-        exchangeRate,
-        occurredAt,
-        note,
-        createdAt,
-        updatedAt,
-      );
+    id,
+    sourceAccountId,
+    destinationAccountId,
+    sourceAmount,
+    destinationAmount,
+    exchangeRate,
+    occurredAt,
+    note,
+    createdAt,
+    updatedAt,
+  );
 }

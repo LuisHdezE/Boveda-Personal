@@ -6,10 +6,7 @@ import 'package:boveda_personal/features/settings/domain/entities/app_settings.d
 import 'package:boveda_personal/features/settings/domain/repositories/settings_repository.dart';
 
 class UpdateProfile {
-  const UpdateProfile({
-    required this.repository,
-    required this.now,
-  });
+  const UpdateProfile({required this.repository, required this.now});
 
   final AuthRepository repository;
   final DateTime Function() now;

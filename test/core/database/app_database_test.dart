@@ -20,14 +20,12 @@ void main() {
 
   test('DB-001 crea todas las tablas, índices, vista y triggers', () async {
     final db = await database.open();
-    final objects = await db.rawQuery(
-      '''
+    final objects = await db.rawQuery('''
       SELECT type, name
       FROM sqlite_master
       WHERE name NOT LIKE 'sqlite_%'
       ORDER BY type, name
-      ''',
-    );
+      ''');
 
     final names = objects.map((row) => row['name']).toSet();
 
@@ -251,14 +249,14 @@ void main() {
 }
 
 Map<String, Object?> _userRow() => {
-      'id': 'user-1',
-      'display_name': 'Luis',
-      'username': 'luis',
-      'password_hash': 'hash',
-      'password_salt': 'salt',
-      'created_at': 1,
-      'updated_at': 1,
-    };
+  'id': 'user-1',
+  'display_name': 'Luis',
+  'username': 'luis',
+  'password_hash': 'hash',
+  'password_salt': 'salt',
+  'created_at': 1,
+  'updated_at': 1,
+};
 
 Future<void> _insertUserAndAccount(Database db) async {
   await db.insert(DatabaseTables.users, _userRow());

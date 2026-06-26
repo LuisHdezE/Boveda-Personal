@@ -5,10 +5,7 @@ import 'package:boveda_personal/features/converter/domain/repositories/calculato
 import 'package:decimal/decimal.dart';
 
 class ConvertCurrency {
-  const ConvertCurrency(
-    this.repository, {
-    required this.now,
-  });
+  const ConvertCurrency(this.repository, {required this.now});
 
   final CalculatorCurrencyRepository repository;
   final DateTime Function() now;
@@ -48,10 +45,7 @@ class ConvertCurrency {
         : [source.code, 'USD', target.code];
     return ConversionQuote(
       request: request,
-      convertedAmount: Money(
-        minorUnits: convertedMinor,
-        currency: target,
-      ),
+      convertedAmount: Money(minorUnits: convertedMinor, currency: target),
       rate: _effectiveRate(sourceRate, targetRate),
       quotedAt: now().toUtc(),
       path: path,
@@ -68,13 +62,13 @@ int _convertMinor(
 }) {
   final sourceRate = _fraction(sourceUnitsPerUsd);
   final targetRate = _fraction(targetUnitsPerUsd);
-  final numerator = BigInt.from(sourceMinor) *
+  final numerator =
+      BigInt.from(sourceMinor) *
       _pow10(targetScale) *
       sourceRate.denominator *
       targetRate.numerator;
-  final denominator = _pow10(sourceScale) *
-      sourceRate.numerator *
-      targetRate.denominator;
+  final denominator =
+      _pow10(sourceScale) * sourceRate.numerator * targetRate.denominator;
   return _roundHalfAwayFromZero(numerator, denominator).toInt();
 }
 
@@ -83,10 +77,7 @@ Decimal _effectiveRate(Decimal source, Decimal target) {
   final targetFraction = _fraction(target);
   final numerator = targetFraction.numerator * sourceFraction.denominator;
   final denominator = targetFraction.denominator * sourceFraction.numerator;
-  final scaled = _roundHalfAwayFromZero(
-    numerator * _pow10(12),
-    denominator,
-  );
+  final scaled = _roundHalfAwayFromZero(numerator * _pow10(12), denominator);
   return Decimal.parse(_scaledString(scaled, 12));
 }
 
@@ -94,8 +85,9 @@ Decimal _effectiveRate(Decimal source, Decimal target) {
   final text = value.toString().toLowerCase();
   final exponentParts = text.split('e');
   final mantissa = exponentParts.first;
-  final exponent =
-      exponentParts.length == 2 ? int.parse(exponentParts.last) : 0;
+  final exponent = exponentParts.length == 2
+      ? int.parse(exponentParts.last)
+      : 0;
   final parts = mantissa.split('.');
   final decimalCount = parts.length == 2 ? parts[1].length : 0;
   final effectiveScale = decimalCount - exponent;
@@ -106,10 +98,7 @@ Decimal _effectiveRate(Decimal source, Decimal target) {
       denominator: BigInt.one,
     );
   }
-  return (
-    numerator: digits,
-    denominator: _pow10(effectiveScale),
-  );
+  return (numerator: digits, denominator: _pow10(effectiveScale));
 }
 
 BigInt _roundHalfAwayFromZero(BigInt numerator, BigInt denominator) {

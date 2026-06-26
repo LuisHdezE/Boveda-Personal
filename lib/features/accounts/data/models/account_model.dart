@@ -30,13 +30,13 @@ class AccountModel {
   Account toEntity() => entity;
 
   Map<String, Object?> toRow() => {
-        'id': entity.id,
-        'user_id': entity.userId,
-        'currency_code': entity.currency.code,
-        'currency_scale': entity.currency.scale,
-        'name': entity.name,
-        'is_active': RowConverters.boolToSql(entity.isActive),
-        'created_at': RowConverters.dateToSql(entity.createdAt),
-        'updated_at': RowConverters.dateToSql(entity.updatedAt),
-      };
+    'id': entity.id,
+    'user_id': entity.userId,
+    'currency_code': entity.currency.code,
+    'currency_scale': entity.currency.scale,
+    'name': entity.name,
+    'is_active': RowConverters.boolToSql(entity.isActive),
+    'created_at': RowConverters.dateToSql(entity.createdAt),
+    'updated_at': RowConverters.dateToSql(entity.updatedAt),
+  };
 }

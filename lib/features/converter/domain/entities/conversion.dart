@@ -4,10 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:decimal/decimal.dart';
 
 class ConversionRequest {
-  ConversionRequest({
-    required this.amount,
-    required this.targetCurrency,
-  }) {
+  ConversionRequest({required this.amount, required this.targetCurrency}) {
     if (amount.minorUnits < 0) {
       throw ArgumentError.value(amount, 'amount');
     }
@@ -68,10 +65,10 @@ class ConversionQuote {
 
   @override
   int get hashCode => Object.hash(
-        request,
-        convertedAmount,
-        rate,
-        quotedAt,
-        const ListEquality<String>().hash(path),
-      );
+    request,
+    convertedAmount,
+    rate,
+    quotedAt,
+    const ListEquality<String>().hash(path),
+  );
 }

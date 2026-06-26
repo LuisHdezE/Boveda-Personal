@@ -24,9 +24,7 @@ class CalculatorCurrencyDao {
     }
   }
 
-  Future<List<Map<String, Object?>>> list({
-    bool activeOnly = false,
-  }) async {
+  Future<List<Map<String, Object?>>> list({bool activeOnly = false}) async {
     final db = await _database.open();
     return db.query(
       DatabaseTables.calculatorCurrencies,

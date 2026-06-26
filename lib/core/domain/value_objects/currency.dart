@@ -1,8 +1,5 @@
 class Currency {
-  factory Currency({
-    required String code,
-    required int scale,
-  }) {
+  factory Currency({required String code, required int scale}) {
     final normalizedCode = code.trim().toUpperCase();
     if (!RegExp(r'^[A-Z0-9]{3,8}$').hasMatch(normalizedCode)) {
       throw ArgumentError.value(code, 'code', 'Invalid currency code');
@@ -13,10 +10,7 @@ class Currency {
     return Currency._(code: normalizedCode, scale: scale);
   }
 
-  const Currency._({
-    required this.code,
-    required this.scale,
-  });
+  const Currency._({required this.code, required this.scale});
 
   final String code;
   final int scale;

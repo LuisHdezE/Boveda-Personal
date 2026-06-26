@@ -12,10 +12,7 @@ abstract final class DatabaseExceptionMapper {
           message.contains('foreign key constraint') ||
           message.contains('check constraint') ||
           message.contains('constraint failed')) {
-        return StorageFailure(
-          'database_integrity_constraint',
-          cause: error,
-        );
+        return StorageFailure('database_integrity_constraint', cause: error);
       }
       if (message.contains('database_closed') ||
           message.contains('database is closed')) {

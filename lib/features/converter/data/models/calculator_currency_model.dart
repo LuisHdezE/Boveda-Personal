@@ -34,14 +34,14 @@ class CalculatorCurrencyModel {
   CalculatorCurrency toEntity() => entity;
 
   Map<String, Object?> toRow() => {
-        'id': entity.id,
-        'name': entity.name,
-        'code': entity.currency.code,
-        'symbol': entity.symbol,
-        'currency_scale': entity.currency.scale,
-        'units_per_usd': entity.unitsPerUsd.toString(),
-        'is_active': RowConverters.boolToSql(entity.isActive),
-        'created_at': RowConverters.dateToSql(entity.createdAt),
-        'updated_at': RowConverters.dateToSql(entity.updatedAt),
-      };
+    'id': entity.id,
+    'name': entity.name,
+    'code': entity.currency.code,
+    'symbol': entity.symbol,
+    'currency_scale': entity.currency.scale,
+    'units_per_usd': entity.unitsPerUsd.toString(),
+    'is_active': RowConverters.boolToSql(entity.isActive),
+    'created_at': RowConverters.dateToSql(entity.createdAt),
+    'updated_at': RowConverters.dateToSql(entity.updatedAt),
+  };
 }

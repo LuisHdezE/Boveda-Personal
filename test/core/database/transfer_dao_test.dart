@@ -65,25 +65,27 @@ void main() {
     expect(await db.query(DatabaseTables.movements), isEmpty);
   });
 
-  test('DB-025 impide desincronizar una transferencia con update directo',
-      () async {
-    await dao.insert(
-      transfer: _transfer,
-      outgoingMovement: _outgoing,
-      incomingMovement: _incoming,
-    );
-    final db = await database.open();
+  test(
+    'DB-025 impide desincronizar una transferencia con update directo',
+    () async {
+      await dao.insert(
+        transfer: _transfer,
+        outgoingMovement: _outgoing,
+        incomingMovement: _incoming,
+      );
+      final db = await database.open();
 
-    await expectLater(
-      db.update(
-        DatabaseTables.transfers,
-        {'source_amount_minor': 200},
-        where: 'id = ?',
-        whereArgs: ['transfer-1'],
-      ),
-      throwsA(isA<DatabaseException>()),
-    );
-  });
+      await expectLater(
+        db.update(
+          DatabaseTables.transfers,
+          {'source_amount_minor': 200},
+          where: 'id = ?',
+          whereArgs: ['transfer-1'],
+        ),
+        throwsA(isA<DatabaseException>()),
+      );
+    },
+  );
 }
 
 const _user = <String, Object?>{

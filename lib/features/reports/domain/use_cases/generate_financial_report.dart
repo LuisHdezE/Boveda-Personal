@@ -52,26 +52,28 @@ class GenerateFinancialReport {
         final categoryId = movement.categoryId ?? 'unknown';
         expensesByCategory[categoryId] =
             (expensesByCategory[categoryId] ?? Money.zero(currency)) +
-                converted;
+            converted;
       }
     }
-    final breakdown = expensesByCategory.entries.map((entry) {
-      final percentage = expense.isZero
-          ? Decimal.zero
-          : _percentage(entry.value.minorUnits, expense.minorUnits);
-      return CategoryBreakdown(
-        categoryId: entry.key,
-        categoryName: categoryNames[entry.key] ?? 'Sin categoría',
-        amount: entry.value,
-        percentage: percentage,
-      );
-    }).toList()
-      ..sort((a, b) {
-        final amountOrder = b.amount.minorUnits.compareTo(a.amount.minorUnits);
-        return amountOrder != 0
-            ? amountOrder
-            : a.categoryName.compareTo(b.categoryName);
-      });
+    final breakdown =
+        expensesByCategory.entries.map((entry) {
+          final percentage = expense.isZero
+              ? Decimal.zero
+              : _percentage(entry.value.minorUnits, expense.minorUnits);
+          return CategoryBreakdown(
+            categoryId: entry.key,
+            categoryName: categoryNames[entry.key] ?? 'Sin categoría',
+            amount: entry.value,
+            percentage: percentage,
+          );
+        }).toList()..sort((a, b) {
+          final amountOrder = b.amount.minorUnits.compareTo(
+            a.amount.minorUnits,
+          );
+          return amountOrder != 0
+              ? amountOrder
+              : a.categoryName.compareTo(b.categoryName);
+        });
     final savingsRate = income.isZero
         ? Decimal.zero
         : _percentage(
@@ -94,7 +96,8 @@ class GenerateFinancialReport {
 }
 
 Decimal _percentage(int numerator, int denominator) {
-  final scaled = (BigInt.from(numerator) * BigInt.from(1000000)) ~/
+  final scaled =
+      (BigInt.from(numerator) * BigInt.from(1000000)) ~/
       BigInt.from(denominator);
   final negative = scaled.isNegative;
   final digits = scaled.abs().toString().padLeft(5, '0');

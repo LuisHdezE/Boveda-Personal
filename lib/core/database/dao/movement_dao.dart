@@ -70,10 +70,7 @@ class MovementDao {
     await db.insert(DatabaseTables.movements, values);
   }
 
-  Future<void> update(
-    String id,
-    Map<String, Object?> values,
-  ) async {
+  Future<void> update(String id, Map<String, Object?> values) async {
     final db = await _database.open();
     final changed = await db.update(
       DatabaseTables.movements,

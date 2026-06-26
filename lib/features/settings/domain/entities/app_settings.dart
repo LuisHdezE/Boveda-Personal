@@ -37,8 +37,9 @@ class AppSettings {
       primaryCurrencyCode: primaryCurrencyCode ?? this.primaryCurrencyCode,
       locale: locale ?? this.locale,
       biometricsEnabled: biometricsEnabled ?? this.biometricsEnabled,
-      autoLockDuration:
-          clearAutoLockDuration ? null : autoLockDuration ?? this.autoLockDuration,
+      autoLockDuration: clearAutoLockDuration
+          ? null
+          : autoLockDuration ?? this.autoLockDuration,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -60,13 +61,13 @@ class AppSettings {
 
   @override
   int get hashCode => Object.hash(
-        userId,
-        primaryCurrencyCode,
-        locale,
-        biometricsEnabled,
-        autoLockDuration,
-        onboardingCompleted,
-        createdAt,
-        updatedAt,
-      );
+    userId,
+    primaryCurrencyCode,
+    locale,
+    biometricsEnabled,
+    autoLockDuration,
+    onboardingCompleted,
+    createdAt,
+    updatedAt,
+  );
 }

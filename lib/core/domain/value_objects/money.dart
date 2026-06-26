@@ -1,10 +1,7 @@
 import 'package:boveda_personal/core/domain/value_objects/currency.dart';
 
 class Money implements Comparable<Money> {
-  Money({
-    required this.minorUnits,
-    required this.currency,
-  });
+  Money({required this.minorUnits, required this.currency});
 
   final int minorUnits;
   final Currency currency;
@@ -13,11 +10,10 @@ class Money implements Comparable<Money> {
     return Money(minorUnits: 0, currency: currency);
   }
 
-  factory Money.parseMajor(
-    String value, {
-    required Currency currency,
-  }) {
-    final match = RegExp(r'^([+-]?)(\d+)(?:\.(\d+))?$').firstMatch(value.trim());
+  factory Money.parseMajor(String value, {required Currency currency}) {
+    final match = RegExp(
+      r'^([+-]?)(\d+)(?:\.(\d+))?$',
+    ).firstMatch(value.trim());
     if (match == null) {
       throw const FormatException('Invalid monetary amount');
     }
@@ -40,7 +36,10 @@ class Money implements Comparable<Money> {
     if (currency.scale == 0) {
       return '${minorUnits < 0 ? '-' : ''}$whole';
     }
-    final fraction = (absolute % factor).toString().padLeft(currency.scale, '0');
+    final fraction = (absolute % factor).toString().padLeft(
+      currency.scale,
+      '0',
+    );
     return '${minorUnits < 0 ? '-' : ''}$whole.$fraction';
   }
 
@@ -50,18 +49,12 @@ class Money implements Comparable<Money> {
 
   Money operator +(Money other) {
     _requireSameCurrency(other);
-    return Money(
-      minorUnits: minorUnits + other.minorUnits,
-      currency: currency,
-    );
+    return Money(minorUnits: minorUnits + other.minorUnits, currency: currency);
   }
 
   Money operator -(Money other) {
     _requireSameCurrency(other);
-    return Money(
-      minorUnits: minorUnits - other.minorUnits,
-      currency: currency,
-    );
+    return Money(minorUnits: minorUnits - other.minorUnits, currency: currency);
   }
 
   Money operator -() => Money(minorUnits: -minorUnits, currency: currency);

@@ -37,15 +37,15 @@ class MovementModel {
   Movement toEntity() => entity;
 
   Map<String, Object?> toRow() => {
-        'id': entity.id,
-        'account_id': entity.accountId,
-        'category_id': entity.categoryId,
-        'transfer_id': entity.transferId,
-        'type': entity.type.value,
-        'amount_minor': entity.amount.minorUnits,
-        'occurred_at': RowConverters.dateToSql(entity.occurredAt),
-        'note': entity.note,
-        'created_at': RowConverters.dateToSql(entity.createdAt),
-        'updated_at': RowConverters.dateToSql(entity.updatedAt),
-      };
+    'id': entity.id,
+    'account_id': entity.accountId,
+    'category_id': entity.categoryId,
+    'transfer_id': entity.transferId,
+    'type': entity.type.value,
+    'amount_minor': entity.amount.minorUnits,
+    'occurred_at': RowConverters.dateToSql(entity.occurredAt),
+    'note': entity.note,
+    'created_at': RowConverters.dateToSql(entity.createdAt),
+    'updated_at': RowConverters.dateToSql(entity.updatedAt),
+  };
 }

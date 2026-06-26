@@ -1,8 +1,4 @@
-enum SessionState {
-  anonymous,
-  authenticated,
-  locked,
-}
+enum SessionState { anonymous, authenticated, locked }
 
 class AuthSession {
   const AuthSession._({
@@ -97,10 +93,10 @@ class AuthSession {
 
   @override
   int get hashCode => Object.hash(
-        state,
-        userId,
-        authenticatedAt,
-        lastActivityAt,
-        autoLockDuration,
-      );
+    state,
+    userId,
+    authenticatedAt,
+    lastActivityAt,
+    autoLockDuration,
+  );
 }

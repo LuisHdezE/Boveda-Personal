@@ -49,14 +49,14 @@ class User {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        displayName,
-        username,
-        passwordHash,
-        passwordSalt,
-        createdAt,
-        updatedAt,
-      );
+    id,
+    displayName,
+    username,
+    passwordHash,
+    passwordSalt,
+    createdAt,
+    updatedAt,
+  );
 
   @override
   String toString() {

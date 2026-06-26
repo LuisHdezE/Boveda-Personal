@@ -56,13 +56,13 @@ class CalculatorCurrency {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        name,
-        currency,
-        symbol,
-        unitsPerUsd,
-        isActive,
-        createdAt,
-        updatedAt,
-      );
+    id,
+    name,
+    currency,
+    symbol,
+    unitsPerUsd,
+    isActive,
+    createdAt,
+    updatedAt,
+  );
 }

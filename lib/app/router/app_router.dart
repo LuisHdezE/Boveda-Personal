@@ -1,4 +1,28 @@
-import 'package:boveda_personal/shared/presentation/scaffold/feature_placeholder_screen.dart';
+import 'package:boveda_personal/features/auth/presentation/views/login_view.dart';
+import 'package:boveda_personal/features/converter/presentation/views/calculator_view.dart';
+import 'package:boveda_personal/features/converter/presentation/views/converter_view.dart';
+import 'package:boveda_personal/features/dashboard/presentation/views/dashboard_view.dart';
+import 'package:boveda_personal/features/movements/presentation/views/movement_detail_view.dart';
+import 'package:boveda_personal/features/movements/presentation/views/movement_filters_view.dart';
+import 'package:boveda_personal/features/movements/presentation/views/movements_history_view.dart';
+import 'package:boveda_personal/features/movements/presentation/views/new_movement_view.dart';
+import 'package:boveda_personal/features/onboarding/presentation/views/onboarding_view.dart';
+import 'package:boveda_personal/features/onboarding/presentation/views/splash_view.dart';
+import 'package:boveda_personal/features/reports/presentation/views/annual_report_view.dart';
+import 'package:boveda_personal/features/reports/presentation/views/expenses_by_category_view.dart';
+import 'package:boveda_personal/features/reports/presentation/views/monthly_report_view.dart';
+import 'package:boveda_personal/features/reports/presentation/views/patrimony_evolution_view.dart';
+import 'package:boveda_personal/features/reports/presentation/views/quarterly_report_view.dart';
+import 'package:boveda_personal/features/reports/presentation/views/reports_view.dart';
+import 'package:boveda_personal/features/reports/presentation/views/weekly_report_view.dart';
+import 'package:boveda_personal/features/settings/presentation/views/about_view.dart';
+import 'package:boveda_personal/features/settings/presentation/views/change_password_view.dart';
+import 'package:boveda_personal/features/settings/presentation/views/currency_management_view.dart';
+import 'package:boveda_personal/features/settings/presentation/views/profile_view.dart';
+import 'package:boveda_personal/features/settings/presentation/views/settings_view.dart';
+import 'package:boveda_personal/features/settings/presentation/views/update_usd_rate_view.dart';
+import 'package:boveda_personal/features/simulator/presentation/views/simulation_result_view.dart';
+import 'package:boveda_personal/features/simulator/presentation/views/simulator_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -21,47 +45,109 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: AppRoutes.splash,
-        builder: (_, _) => const FeaturePlaceholderScreen(title: 'Splash'),
+        builder: (_, _) => const SplashView(),
       ),
       GoRoute(
         path: AppRoutes.onboarding,
-        builder: (_, _) =>
-            const FeaturePlaceholderScreen(title: 'Configuración inicial'),
+        builder: (_, _) => const OnboardingView(),
       ),
       GoRoute(
         path: AppRoutes.login,
-        builder: (_, _) => const FeaturePlaceholderScreen(title: 'Login'),
+        builder: (_, _) => const LoginView(),
       ),
       GoRoute(
         path: AppRoutes.dashboard,
-        builder: (_, _) => const FeaturePlaceholderScreen(title: 'Inicio'),
+        builder: (_, _) => const DashboardView(),
       ),
       GoRoute(
         path: AppRoutes.movement,
-        builder: (_, _) =>
-            const FeaturePlaceholderScreen(title: 'Nuevo movimiento'),
+        builder: (_, _) => const NewMovementView(),
       ),
       GoRoute(
         path: AppRoutes.history,
-        builder: (_, _) =>
-            const FeaturePlaceholderScreen(title: 'Históricos'),
+        builder: (_, _) => const MovementsHistoryView(),
+      ),
+      GoRoute(
+        path: '/movements/detail',
+        builder: (_, _) => const MovementDetailView(),
+      ),
+      GoRoute(
+        path: '/movements/filters',
+        builder: (_, _) => const MovementFiltersView(),
       ),
       GoRoute(
         path: AppRoutes.reports,
-        builder: (_, _) => const FeaturePlaceholderScreen(title: 'Reportes'),
+        builder: (_, _) => const ReportsView(),
+        routes: [
+          GoRoute(
+            path: 'weekly',
+            builder: (_, _) => const WeeklyReportView(),
+          ),
+          GoRoute(
+            path: 'monthly',
+            builder: (_, _) => const MonthlyReportView(),
+          ),
+          GoRoute(
+            path: 'quarterly',
+            builder: (_, _) => const QuarterlyReportView(),
+          ),
+          GoRoute(
+            path: 'annual',
+            builder: (_, _) => const AnnualReportView(),
+          ),
+          GoRoute(
+            path: 'categories',
+            builder: (_, _) => const ExpensesByCategoryView(),
+          ),
+          GoRoute(
+            path: 'evolution',
+            builder: (_, _) => const PatrimonyEvolutionView(),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.simulator,
-        builder: (_, _) => const FeaturePlaceholderScreen(title: 'Simulador'),
+        builder: (_, _) => const SimulatorView(),
+        routes: [
+          GoRoute(
+            path: 'result',
+            builder: (_, _) => const SimulationResultView(),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.converter,
-        builder: (_, _) => const FeaturePlaceholderScreen(title: 'Conversor'),
+        builder: (_, _) => const ConverterView(),
+      ),
+      GoRoute(
+        path: '/calculator',
+        builder: (_, _) => const CalculatorView(),
       ),
       GoRoute(
         path: AppRoutes.settings,
-        builder: (_, _) =>
-            const FeaturePlaceholderScreen(title: 'Configuración'),
+        builder: (_, _) => const SettingsView(),
+        routes: [
+          GoRoute(
+            path: 'profile',
+            builder: (_, _) => const ProfileView(),
+          ),
+          GoRoute(
+            path: 'about',
+            builder: (_, _) => const AboutView(),
+          ),
+          GoRoute(
+            path: 'password',
+            builder: (_, _) => const ChangePasswordView(),
+          ),
+          GoRoute(
+            path: 'currencies',
+            builder: (_, _) => const CurrencyManagementView(),
+          ),
+          GoRoute(
+            path: 'usd-rate',
+            builder: (_, _) => const UpdateUsdRateView(),
+          ),
+        ],
       ),
     ],
   );

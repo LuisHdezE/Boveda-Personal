@@ -8,8 +8,8 @@ class ExchangeRate {
     required this.rate,
     required this.effectiveAt,
     required this.createdAt,
-  })  : _baseCurrencyCode = baseCurrencyCode,
-        _quoteCurrencyCode = quoteCurrencyCode;
+  }) : _baseCurrencyCode = baseCurrencyCode,
+       _quoteCurrencyCode = quoteCurrencyCode;
 
   final String id;
   final String _baseCurrencyCode;
@@ -21,10 +21,7 @@ class ExchangeRate {
   String get baseCurrencyCode => _baseCurrencyCode.toUpperCase();
   String get quoteCurrencyCode => _quoteCurrencyCode.toUpperCase();
 
-  ExchangeRate copyWith({
-    Decimal? rate,
-    DateTime? effectiveAt,
-  }) {
+  ExchangeRate copyWith({Decimal? rate, DateTime? effectiveAt}) {
     return ExchangeRate(
       id: id,
       baseCurrencyCode: baseCurrencyCode,
@@ -48,11 +45,11 @@ class ExchangeRate {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        baseCurrencyCode,
-        quoteCurrencyCode,
-        rate,
-        effectiveAt,
-        createdAt,
-      );
+    id,
+    baseCurrencyCode,
+    quoteCurrencyCode,
+    rate,
+    effectiveAt,
+    createdAt,
+  );
 }

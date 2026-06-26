@@ -76,14 +76,14 @@ class Category {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        name,
-        icon,
-        colorValue,
-        movementType,
-        isSystem,
-        isActive,
-        createdAt,
-        updatedAt,
-      );
+    id,
+    name,
+    icon,
+    colorValue,
+    movementType,
+    isSystem,
+    isActive,
+    createdAt,
+    updatedAt,
+  );
 }

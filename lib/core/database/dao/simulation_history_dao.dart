@@ -11,10 +11,7 @@ class SimulationHistoryDao {
     await db.insert(DatabaseTables.simulationHistory, values);
   }
 
-  Future<List<Map<String, Object?>>> list({
-    int? limit,
-    int? offset,
-  }) async {
+  Future<List<Map<String, Object?>>> list({int? limit, int? offset}) async {
     final db = await _database.open();
     return db.query(
       DatabaseTables.simulationHistory,

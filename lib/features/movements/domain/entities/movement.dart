@@ -9,7 +9,7 @@ enum MovementType {
   adjustment;
 
   const MovementType([String? storageValue])
-      : storageValue = storageValue ?? '';
+    : storageValue = storageValue ?? '';
 
   final String storageValue;
 
@@ -53,8 +53,7 @@ class Movement {
       MovementType.opening ||
       MovementType.income ||
       MovementType.transferIn ||
-      MovementType.adjustment =>
-        true,
+      MovementType.adjustment => true,
       MovementType.expense || MovementType.transferOut => false,
     };
   }
@@ -62,8 +61,7 @@ class Movement {
   bool get isDebit => !isCredit;
   bool get isTransfer =>
       type == MovementType.transferIn || type == MovementType.transferOut;
-  int get signedMinorUnits =>
-      isCredit ? amount.minorUnits : -amount.minorUnits;
+  int get signedMinorUnits => isCredit ? amount.minorUnits : -amount.minorUnits;
 
   Movement copyWith({
     String? accountId,
@@ -109,15 +107,15 @@ class Movement {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        accountId,
-        categoryId,
-        transferId,
-        type,
-        amount,
-        occurredAt,
-        note,
-        createdAt,
-        updatedAt,
-      );
+    id,
+    accountId,
+    categoryId,
+    transferId,
+    type,
+    amount,
+    occurredAt,
+    note,
+    createdAt,
+    updatedAt,
+  );
 }

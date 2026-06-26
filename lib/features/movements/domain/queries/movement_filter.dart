@@ -65,9 +65,9 @@ class MovementFilter {
 
   @override
   int get hashCode => Object.hash(
-        period,
-        accountId,
-        categoryId,
-        const SetEquality<MovementType>().hash(types),
-      );
+    period,
+    accountId,
+    categoryId,
+    const SetEquality<MovementType>().hash(types),
+  );
 }

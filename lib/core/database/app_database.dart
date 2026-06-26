@@ -5,11 +5,9 @@ import 'package:path/path.dart' as path_util;
 import 'package:sqflite/sqflite.dart';
 
 class BovedaDatabase {
-  BovedaDatabase({
-    DatabaseFactory? factory,
-    String? path,
-  })  : _factory = factory ?? databaseFactory,
-        _path = path;
+  BovedaDatabase({DatabaseFactory? factory, String? path})
+    : _factory = factory ?? databaseFactory,
+      _path = path;
 
   final DatabaseFactory _factory;
   final String? _path;
@@ -21,7 +19,8 @@ class BovedaDatabase {
       return current;
     }
 
-    final databasePath = _path ??
+    final databasePath =
+        _path ??
         path_util.join(
           await _factory.getDatabasesPath(),
           DatabaseConstants.name,
@@ -34,11 +33,8 @@ class BovedaDatabase {
         onConfigure: _configure,
         onCreate: (db, version) =>
             DatabaseMigrator.migrate(db, from: 0, to: version),
-        onUpgrade: (db, oldVersion, newVersion) => DatabaseMigrator.migrate(
-          db,
-          from: oldVersion,
-          to: newVersion,
-        ),
+        onUpgrade: (db, oldVersion, newVersion) =>
+            DatabaseMigrator.migrate(db, from: oldVersion, to: newVersion),
         onDowngrade: (db, oldVersion, newVersion) {
           throw UnsupportedError(
             'Database downgrade is not supported: '

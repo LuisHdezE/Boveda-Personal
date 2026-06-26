@@ -120,8 +120,9 @@ void main() {
     ];
 
     final restored = <Object>[
-      UserModel.fromRow(UserModel.fromEntity(entities[0] as User).toRow())
-          .toEntity(),
+      UserModel.fromRow(
+        UserModel.fromEntity(entities[0] as User).toRow(),
+      ).toEntity(),
       AccountModel.fromRow(
         AccountModel.fromEntity(entities[1] as Account).toRow(),
       ).toEntity(),

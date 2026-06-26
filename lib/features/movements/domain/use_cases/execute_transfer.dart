@@ -95,8 +95,9 @@ class ReplaceTransfer {
     required TransferDraft replacement,
   }) async {
     final source = await accounts.findById(replacement.sourceAccountId);
-    final destination =
-        await accounts.findById(replacement.destinationAccountId);
+    final destination = await accounts.findById(
+      replacement.destinationAccountId,
+    );
     if (source == null || destination == null) {
       throw const NotFoundFailure('transfer_account_not_found');
     }

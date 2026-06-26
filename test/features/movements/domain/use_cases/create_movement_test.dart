@@ -78,10 +78,7 @@ class _MovementRepository implements MovementRepository {
   Future<Movement?> findById(String id) async => null;
 
   @override
-  Future<List<Movement>> list(
-    MovementFilter filter,
-    PageRequest page,
-  ) async =>
+  Future<List<Movement>> list(MovementFilter filter, PageRequest page) async =>
       [];
 
   @override
@@ -93,7 +90,8 @@ class _AccountRepository implements AccountRepository {
   final Account account;
 
   @override
-  Future<Account?> findById(String id) async => id == account.id ? account : null;
+  Future<Account?> findById(String id) async =>
+      id == account.id ? account : null;
 
   @override
   Future<List<AccountBalance>> balances() async => [];
@@ -120,8 +118,7 @@ class _CategoryRepository implements CategoryRepository {
   Future<List<Category>> list({
     CategoryMovementType? movementType,
     bool activeOnly = true,
-  }) async =>
-      [category];
+  }) async => [category];
 
   @override
   Future<void> save(Category category) async {}

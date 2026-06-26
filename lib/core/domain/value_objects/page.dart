@@ -1,10 +1,7 @@
 import 'package:collection/collection.dart';
 
 class PageRequest {
-  factory PageRequest({
-    int limit = 50,
-    int offset = 0,
-  }) {
+  factory PageRequest({int limit = 50, int offset = 0}) {
     if (limit <= 0) {
       throw ArgumentError.value(limit, 'limit', 'Must be positive');
     }
@@ -14,10 +11,7 @@ class PageRequest {
     return PageRequest._(limit: limit, offset: offset);
   }
 
-  const PageRequest._({
-    required this.limit,
-    required this.offset,
-  });
+  const PageRequest._({required this.limit, required this.offset});
 
   final int limit;
   final int offset;
@@ -36,11 +30,8 @@ class PageRequest {
 }
 
 class Page<T> {
-  Page({
-    required List<T> items,
-    required this.request,
-    required this.total,
-  }) : items = List.unmodifiable(items) {
+  Page({required List<T> items, required this.request, required this.total})
+    : items = List.unmodifiable(items) {
     if (total < 0 || total < request.offset + this.items.length) {
       throw ArgumentError.value(total, 'total', 'Inconsistent page total');
     }
@@ -62,9 +53,6 @@ class Page<T> {
   }
 
   @override
-  int get hashCode => Object.hash(
-        const ListEquality<Object?>().hash(items),
-        request,
-        total,
-      );
+  int get hashCode =>
+      Object.hash(const ListEquality<Object?>().hash(items), request, total);
 }

@@ -26,12 +26,12 @@ class UserModel {
   User toEntity() => entity;
 
   Map<String, Object?> toRow() => {
-        'id': entity.id,
-        'display_name': entity.displayName,
-        'username': entity.username,
-        'password_hash': entity.passwordHash,
-        'password_salt': entity.passwordSalt,
-        'created_at': RowConverters.dateToSql(entity.createdAt),
-        'updated_at': RowConverters.dateToSql(entity.updatedAt),
-      };
+    'id': entity.id,
+    'display_name': entity.displayName,
+    'username': entity.username,
+    'password_hash': entity.passwordHash,
+    'password_salt': entity.passwordSalt,
+    'created_at': RowConverters.dateToSql(entity.createdAt),
+    'updated_at': RowConverters.dateToSql(entity.updatedAt),
+  };
 }

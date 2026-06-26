@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
 class FeaturePlaceholderScreen extends StatelessWidget {
-  const FeaturePlaceholderScreen({
-    required this.title,
-    super.key,
-  });
+  const FeaturePlaceholderScreen({required this.title, super.key});
 
   final String title;
 
@@ -15,10 +12,7 @@ class FeaturePlaceholderScreen extends StatelessWidget {
       body: Center(
         child: Semantics(
           header: true,
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
+          child: Text(title, style: Theme.of(context).textTheme.headlineMedium),
         ),
       ),
     );

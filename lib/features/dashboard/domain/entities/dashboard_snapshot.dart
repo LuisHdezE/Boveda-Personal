@@ -3,19 +3,14 @@ import 'package:boveda_personal/features/accounts/domain/entities/account_balanc
 import 'package:collection/collection.dart';
 
 class WealthPoint {
-  const WealthPoint({
-    required this.at,
-    required this.value,
-  });
+  const WealthPoint({required this.at, required this.value});
 
   final DateTime at;
   final Money value;
 
   @override
   bool operator ==(Object other) {
-    return other is WealthPoint &&
-        other.at == at &&
-        other.value == value;
+    return other is WealthPoint && other.at == at && other.value == value;
   }
 
   @override
@@ -31,9 +26,9 @@ class DashboardSnapshot {
     required List<String> recentMovementIds,
     required List<WealthPoint> wealthEvolution,
     required this.calculatedAt,
-  })  : balances = List.unmodifiable(balances),
-        recentMovementIds = List.unmodifiable(recentMovementIds),
-        wealthEvolution = List.unmodifiable(wealthEvolution) {
+  }) : balances = List.unmodifiable(balances),
+       recentMovementIds = List.unmodifiable(recentMovementIds),
+       wealthEvolution = List.unmodifiable(wealthEvolution) {
     final currency = totalInPrimaryCurrency.currency;
     if (monthlyIncome.currency != currency ||
         monthlyExpense.currency != currency ||
@@ -75,14 +70,14 @@ class DashboardSnapshot {
 
   @override
   int get hashCode => Object.hash(
-        const ListEquality<AccountBalance>().hash(balances),
-        totalInPrimaryCurrency,
-        monthlyIncome,
-        monthlyExpense,
-        const ListEquality<String>().hash(recentMovementIds),
-        const ListEquality<WealthPoint>().hash(wealthEvolution),
-        calculatedAt,
-      );
+    const ListEquality<AccountBalance>().hash(balances),
+    totalInPrimaryCurrency,
+    monthlyIncome,
+    monthlyExpense,
+    const ListEquality<String>().hash(recentMovementIds),
+    const ListEquality<WealthPoint>().hash(wealthEvolution),
+    calculatedAt,
+  );
 }
 
 bool _chronological(Iterable<DateTime> values) {

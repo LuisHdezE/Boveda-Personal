@@ -41,14 +41,8 @@ class MovementDraft {
   }
 
   @override
-  int get hashCode => Object.hash(
-        accountId,
-        categoryId,
-        type,
-        amount,
-        occurredAt,
-        note,
-      );
+  int get hashCode =>
+      Object.hash(accountId, categoryId, type, amount, occurredAt, note);
 }
 
 class TransferDraft {
@@ -97,14 +91,14 @@ class TransferDraft {
 
   @override
   int get hashCode => Object.hash(
-        sourceAccountId,
-        destinationAccountId,
-        sourceAmount,
-        destinationAmount,
-        exchangeRate,
-        occurredAt,
-        note,
-      );
+    sourceAccountId,
+    destinationAccountId,
+    sourceAmount,
+    destinationAmount,
+    exchangeRate,
+    occurredAt,
+    note,
+  );
 }
 
 String? _normalizeNote(String? value) {

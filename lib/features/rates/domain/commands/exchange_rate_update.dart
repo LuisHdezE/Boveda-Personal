@@ -6,8 +6,8 @@ class ExchangeRateUpdate {
     required String quoteCurrencyCode,
     required this.rate,
     required this.effectiveAt,
-  })  : baseCurrencyCode = baseCurrencyCode.trim().toUpperCase(),
-        quoteCurrencyCode = quoteCurrencyCode.trim().toUpperCase() {
+  }) : baseCurrencyCode = baseCurrencyCode.trim().toUpperCase(),
+       quoteCurrencyCode = quoteCurrencyCode.trim().toUpperCase() {
     if (this.baseCurrencyCode == this.quoteCurrencyCode) {
       throw ArgumentError('Currency pair must contain different currencies');
     }
@@ -31,10 +31,6 @@ class ExchangeRateUpdate {
   }
 
   @override
-  int get hashCode => Object.hash(
-        baseCurrencyCode,
-        quoteCurrencyCode,
-        rate,
-        effectiveAt,
-      );
+  int get hashCode =>
+      Object.hash(baseCurrencyCode, quoteCurrencyCode, rate, effectiveAt);
 }

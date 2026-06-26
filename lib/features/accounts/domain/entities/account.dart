@@ -19,11 +19,7 @@ class Account {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  Account copyWith({
-    String? name,
-    bool? isActive,
-    DateTime? updatedAt,
-  }) {
+  Account copyWith({String? name, bool? isActive, DateTime? updatedAt}) {
     return Account(
       id: id,
       userId: userId,
@@ -48,13 +44,6 @@ class Account {
   }
 
   @override
-  int get hashCode => Object.hash(
-        id,
-        userId,
-        currency,
-        name,
-        isActive,
-        createdAt,
-        updatedAt,
-      );
+  int get hashCode =>
+      Object.hash(id, userId, currency, name, isActive, createdAt, updatedAt);
 }

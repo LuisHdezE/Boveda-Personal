@@ -1,11 +1,4 @@
-enum PeriodUnit {
-  day,
-  week,
-  month,
-  quarter,
-  year,
-  custom,
-}
+enum PeriodUnit { day, week, month, quarter, year, custom }
 
 class DateRange {
   DateRange({
@@ -26,32 +19,24 @@ class DateRange {
     final (start, end) = switch (unit) {
       PeriodUnit.day => (normalized, _addDays(normalized, 1)),
       PeriodUnit.week => (
+        _addDays(normalized, -(normalized.weekday - DateTime.monday)),
+        _addDays(
           _addDays(normalized, -(normalized.weekday - DateTime.monday)),
-          _addDays(
-            _addDays(normalized, -(normalized.weekday - DateTime.monday)),
-            7,
-          ),
+          7,
         ),
+      ),
       PeriodUnit.month => (
-          _at(normalized, normalized.year, normalized.month),
-          _at(normalized, normalized.year, normalized.month + 1),
-        ),
+        _at(normalized, normalized.year, normalized.month),
+        _at(normalized, normalized.year, normalized.month + 1),
+      ),
       PeriodUnit.quarter => (
-          _at(
-            normalized,
-            normalized.year,
-            ((normalized.month - 1) ~/ 3) * 3 + 1,
-          ),
-          _at(
-            normalized,
-            normalized.year,
-            ((normalized.month - 1) ~/ 3) * 3 + 4,
-          ),
-        ),
+        _at(normalized, normalized.year, ((normalized.month - 1) ~/ 3) * 3 + 1),
+        _at(normalized, normalized.year, ((normalized.month - 1) ~/ 3) * 3 + 4),
+      ),
       PeriodUnit.year => (
-          _at(normalized, normalized.year),
-          _at(normalized, normalized.year + 1),
-        ),
+        _at(normalized, normalized.year),
+        _at(normalized, normalized.year + 1),
+      ),
       PeriodUnit.custom => throw StateError('Unreachable'),
     };
     return DateRange(start: start, endExclusive: end, unit: unit);
@@ -72,9 +57,7 @@ class DateRange {
 
   DateRange _shift(int amount) {
     if (unit == PeriodUnit.custom) {
-      final delta = Duration(
-        microseconds: duration.inMicroseconds * amount,
-      );
+      final delta = Duration(microseconds: duration.inMicroseconds * amount);
       return DateRange(
         start: start.add(delta),
         endExclusive: endExclusive.add(delta),

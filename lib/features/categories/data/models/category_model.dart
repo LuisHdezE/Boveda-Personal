@@ -30,14 +30,14 @@ class CategoryModel {
   Category toEntity() => entity;
 
   Map<String, Object?> toRow() => {
-        'id': entity.id,
-        'name': entity.name,
-        'icon': entity.icon,
-        'color': entity.colorValue,
-        'movement_type': entity.movementType.name,
-        'is_system': RowConverters.boolToSql(entity.isSystem),
-        'is_active': RowConverters.boolToSql(entity.isActive),
-        'created_at': RowConverters.dateToSql(entity.createdAt),
-        'updated_at': RowConverters.dateToSql(entity.updatedAt),
-      };
+    'id': entity.id,
+    'name': entity.name,
+    'icon': entity.icon,
+    'color': entity.colorValue,
+    'movement_type': entity.movementType.name,
+    'is_system': RowConverters.boolToSql(entity.isSystem),
+    'is_active': RowConverters.boolToSql(entity.isActive),
+    'created_at': RowConverters.dateToSql(entity.createdAt),
+    'updated_at': RowConverters.dateToSql(entity.updatedAt),
+  };
 }

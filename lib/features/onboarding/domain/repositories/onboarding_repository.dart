@@ -11,8 +11,8 @@ class OnboardingData {
     required List<Account> accounts,
     required this.initialRate,
     required List<Movement> openingMovements,
-  })  : accounts = List.unmodifiable(accounts),
-        openingMovements = List.unmodifiable(openingMovements);
+  }) : accounts = List.unmodifiable(accounts),
+       openingMovements = List.unmodifiable(openingMovements);
 
   final User user;
   final AppSettings settings;

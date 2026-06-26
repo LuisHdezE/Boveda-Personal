@@ -13,9 +13,9 @@ class OnboardingSetup {
     required this.primaryOpeningBalance,
     required this.secondaryOpeningBalance,
     required String locale,
-  })  : displayName = displayName.trim(),
-        username = username.trim(),
-        locale = locale.trim() {
+  }) : displayName = displayName.trim(),
+       username = username.trim(),
+       locale = locale.trim() {
     if (primaryCurrency.code == secondaryCurrency.code) {
       throw ArgumentError('Primary and secondary currencies must differ');
     }

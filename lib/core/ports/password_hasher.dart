@@ -1,8 +1,5 @@
 class PasswordDigest {
-  const PasswordDigest({
-    required this.hash,
-    required this.salt,
-  });
+  const PasswordDigest({required this.hash, required this.salt});
 
   final String hash;
   final String salt;

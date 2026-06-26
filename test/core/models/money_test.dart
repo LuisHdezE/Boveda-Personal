@@ -23,7 +23,8 @@ void main() {
 
   test('MONEY-006 rechaza operaciones entre monedas diferentes', () {
     expect(
-      () => Money(minorUnits: 100, currency: usd) +
+      () =>
+          Money(minorUnits: 100, currency: usd) +
           Money(minorUnits: 100, currency: uyu),
       throwsArgumentError,
     );
@@ -51,10 +52,7 @@ void main() {
     final shortCode = 'U';
     final invalidScale = 7;
 
-    expect(
-      () => Currency(code: shortCode, scale: 2),
-      throwsArgumentError,
-    );
+    expect(() => Currency(code: shortCode, scale: 2), throwsArgumentError);
     expect(
       () => Currency(code: 'USD', scale: invalidScale),
       throwsArgumentError,

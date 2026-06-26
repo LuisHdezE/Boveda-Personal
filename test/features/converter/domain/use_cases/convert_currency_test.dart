@@ -15,9 +15,7 @@ void main() {
 
   test('CAL-007 convierte USD a moneda usando unitsPerUsd', () async {
     final useCase = ConvertCurrency(
-      _CurrencyRepository([
-        _currency(uyu, Decimal.fromInt(40), now),
-      ]),
+      _CurrencyRepository([_currency(uyu, Decimal.fromInt(40), now)]),
       now: () => now,
     );
 
@@ -53,11 +51,7 @@ void main() {
   });
 }
 
-CalculatorCurrency _currency(
-  Currency currency,
-  Decimal rate,
-  DateTime now,
-) {
+CalculatorCurrency _currency(Currency currency, Decimal rate, DateTime now) {
   return CalculatorCurrency(
     id: currency.code,
     name: currency.code,
@@ -78,9 +72,9 @@ class _CurrencyRepository implements CalculatorCurrencyRepository {
   @override
   Future<CalculatorCurrency?> findActiveByCode(String code) async {
     return items.cast<CalculatorCurrency?>().firstWhere(
-          (item) => item?.currency.code == code.toUpperCase(),
-          orElse: () => null,
-        );
+      (item) => item?.currency.code == code.toUpperCase(),
+      orElse: () => null,
+    );
   }
 
   @override
