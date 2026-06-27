@@ -1,6 +1,10 @@
 import 'package:boveda_personal/features/auth/presentation/views/login_view.dart';
+import 'package:boveda_personal/features/movements/domain/entities/movement.dart';
+import 'package:flutter/material.dart';
 import 'package:boveda_personal/features/converter/presentation/views/calculator_view.dart';
 import 'package:boveda_personal/features/converter/presentation/views/converter_view.dart';
+import 'package:boveda_personal/features/debts/presentation/views/debts_view.dart';
+import 'package:boveda_personal/features/subscriptions/presentation/views/subscriptions_view.dart';
 import 'package:boveda_personal/features/dashboard/presentation/views/dashboard_view.dart';
 import 'package:boveda_personal/features/movements/presentation/views/movement_detail_view.dart';
 import 'package:boveda_personal/features/movements/presentation/views/movement_filters_view.dart';
@@ -23,6 +27,7 @@ import 'package:boveda_personal/features/settings/presentation/views/settings_vi
 import 'package:boveda_personal/features/settings/presentation/views/update_usd_rate_view.dart';
 import 'package:boveda_personal/features/simulator/presentation/views/simulation_result_view.dart';
 import 'package:boveda_personal/features/simulator/presentation/views/simulator_view.dart';
+import 'package:boveda_personal/features/simulator/domain/simulation_data.dart' as boveda_personal_simulation_data;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -37,6 +42,8 @@ abstract final class AppRoutes {
   static const simulator = '/simulator';
   static const converter = '/converter';
   static const settings = '/settings';
+  static const debts = '/debts';
+  static const subscriptions = '/subscriptions';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -56,12 +63,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, _) => const LoginView(),
       ),
       GoRoute(
+        path: AppRoutes.debts,
+        builder: (_, _) => const DebtsView(),
+      ),
+      GoRoute(
+        path: AppRoutes.subscriptions,
+        builder: (_, _) => const SubscriptionsView(),
+      ),
+      GoRoute(
         path: AppRoutes.dashboard,
         builder: (_, _) => const DashboardView(),
       ),
       GoRoute(
         path: AppRoutes.movement,
-        builder: (_, _) => const NewMovementView(),
+        builder: (_, state) {
+          final extra = state.extra;
+          final Movement? initialMovement = extra is Movement ? extra : null;
+          return NewMovementView(initialMovement: initialMovement);
+        },
       ),
       GoRoute(
         path: AppRoutes.history,
@@ -111,7 +130,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: 'result',
-            builder: (_, _) => const SimulationResultView(),
+            builder: (_, state) {
+              final extra = state.extra;
+              if (extra is! boveda_personal_simulation_data.SimulationData) {
+                return const Scaffold(body: Center(child: Text('Error: Datos de simulación no encontrados')));
+              }
+              return SimulationResultView(data: extra);
+            },
           ),
         ],
       ),

@@ -1,5 +1,6 @@
 import 'package:boveda_personal/app/router/app_router.dart';
 import 'package:boveda_personal/app/theme/app_colors.dart';
+import 'package:boveda_personal/core/providers/core_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -17,10 +18,12 @@ class _SplashViewState extends ConsumerState<SplashView> with TickerProviderStat
   late Animation<Offset> _slideAnimation;
   late AnimationController _loadingController;
   late Animation<Offset> _loadingAnimation;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1),
@@ -49,13 +52,35 @@ class _SplashViewState extends ConsumerState<SplashView> with TickerProviderStat
 
     _controller.forward();
 
-    // Auto navigate to login after 2.5 seconds
-    Future.delayed(const Duration(milliseconds: 2500), () {
-      if (mounted) {
+    // Navega después de que los settings estén cargados (mínimo 1.5 s)
+    Future.delayed(const Duration(milliseconds: 1500), _navigate);
+  }
+
+  Future<void> _navigate() async {
+    if (!mounted) return;
+    try {
+      final repo = ref.read(settingsRepositoryProvider);
+      
+      final settings = await repo.load();
+      
+      if (!mounted) return;
+      if (settings == null || !settings.onboardingCompleted) {
+        context.go(AppRoutes.onboarding);
+      } else {
         context.go(AppRoutes.login);
       }
-    });
+    } catch (e, stack) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Error: $e\n$stack';
+      });
+      // Aún así intentamos ir a onboarding por si es un error recuperable
+      Future.delayed(const Duration(seconds: 4), () {
+        if (mounted) context.go(AppRoutes.onboarding);
+      });
+    }
   }
+
 
   @override
   void dispose() {
@@ -145,47 +170,65 @@ class _SplashViewState extends ConsumerState<SplashView> with TickerProviderStat
                           ),
                     ),
                     const SizedBox(height: 12),
-                    Text(
-                      'Secure. Private. Essential.',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: AppColors.onSurfaceVariant.withValues(alpha: 0.8),
-                          ),
-                    ),
+                    if (_errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          _errorMessage!,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                    else
+                      Text(
+                        'Secure. Private. Essential.',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: AppColors.onSurfaceVariant.withValues(alpha: 0.8),
+                            ),
+                      ),
                   ],
                 ),
               ),
             ),
           ),
-          // Decorative Loading/Transition Line
+          // Decorative Loading/Transition Line or Error
           Positioned(
-            bottom: 96,
-            left: 0,
-            right: 0,
+            bottom: 64,
+            left: 20,
+            right: 20,
             child: FadeTransition(
               opacity: _fadeAnimation,
               child: Center(
-                child: Container(
-                  width: 192,
-                  height: 1,
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
-                  ),
-                  child: SlideTransition(
-                    position: _loadingAnimation,
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Container(
-                        width: 64, // 1/3 of 192
+                child: _errorMessage != null
+                    ? Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+                        textAlign: TextAlign.center,
+                      )
+                    : Container(
+                        width: 192,
                         height: 1,
+                        clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
-                          color: AppColors.wealth,
-                          borderRadius: BorderRadius.circular(1),
+                          color: Colors.white.withValues(alpha: 0.05),
+                        ),
+                        child: SlideTransition(
+                          position: _loadingAnimation,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Container(
+                              width: 64, // 1/3 of 192
+                              height: 1,
+                              decoration: BoxDecoration(
+                                color: AppColors.wealth,
+                                borderRadius: BorderRadius.circular(1),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                ),
               ),
             ),
           ),

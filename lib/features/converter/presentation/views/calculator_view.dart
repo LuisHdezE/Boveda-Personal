@@ -3,7 +3,7 @@ import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:boveda_personal/features/settings/presentation/providers/calculator_currencies_provider.dart';
 class CalculatorView extends ConsumerStatefulWidget {
   const CalculatorView({super.key});
 
@@ -13,6 +13,14 @@ class CalculatorView extends ConsumerStatefulWidget {
 
 class _CalculatorViewState extends ConsumerState<CalculatorView> {
   final _amountController = TextEditingController(text: '12500');
+
+  @override
+  void initState() {
+    super.initState();
+    _amountController.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   void dispose() {
@@ -27,7 +35,7 @@ class _CalculatorViewState extends ConsumerState<CalculatorView> {
       showBackButton: true,
       showBottomNav: false,
       child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: EdgeInsets.fromLTRB(20, 12, 20, 40 + MediaQuery.paddingOf(context).bottom),
         children: [
           Text(
             'Conversión en tiempo real sin impacto en saldos.',
@@ -181,69 +189,93 @@ class _CalculatorViewState extends ConsumerState<CalculatorView> {
                   ),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          Text(
-            'CONVERSIONES ACTIVAS',
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                  letterSpacing: 1.5,
+          ],
+        ),
+        const SizedBox(height: 32),
+        Text(
+          'CONVERSIONES ACTIVAS',
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: AppColors.onSurfaceVariant,
+                letterSpacing: 1.5,
+              ),
+        ),
+        const SizedBox(height: 8),
+        
+        // Dynamic list of active currencies
+        Consumer(
+          builder: (context, ref, _) {
+            final currenciesAsync = ref.watch(calculatorCurrenciesProvider);
+            return currenciesAsync.when(
+              data: (currencies) {
+                final active = currencies.where((c) => c.isActive && c.currency.code != 'USD').toList();
+                if (active.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Text(
+                        'No hay monedas activas',
+                        style: TextStyle(color: AppColors.onSurfaceVariant),
+                      ),
+                    ),
+                  );
+                }
+
+                // Parse input amount
+                final inputAmount = double.tryParse(_amountController.text) ?? 0.0;
+
+                return Column(
+                  children: active.map((currency) {
+                    final convertedAmount = inputAmount * currency.unitsPerUsd.toDouble();
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _ConversionItem(
+                        symbol: currency.symbol,
+                        currency: currency.currency.code,
+                        name: currency.name,
+                        amount: convertedAmount.toStringAsFixed(2),
+                        rate: currency.unitsPerUsd.toStringAsFixed(3),
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, st) => Center(child: Text('Error: $e')),
+            );
+          },
+        ),
+
+        const SizedBox(height: 24),
+        InkWell(
+          onTap: () {
+            // TODO: Open currency management or selector
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.add_circle_outline, color: AppColors.wealth),
+                const SizedBox(width: 8),
+                Text(
+                  'Administrar Monedas',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppColors.onSurface,
+                      ),
                 ),
-          ),
-          const SizedBox(height: 8),
-          _ConversionItem(
-            symbol: '€',
-            currency: 'EUR',
-            name: 'Euro',
-            amount: '11,562.50',
-            rate: '0.925',
-          ),
-          const SizedBox(height: 12),
-          _ConversionItem(
-            symbol: '¥',
-            currency: 'JPY',
-            name: 'Yen Japonés',
-            amount: '1,885,625',
-            rate: '150.85',
-          ),
-          const SizedBox(height: 12),
-          _ConversionItem(
-            symbol: '£',
-            currency: 'GBP',
-            name: 'Libra Esterlina',
-            amount: '9,812.50',
-            rate: '0.785',
-          ),
-          const SizedBox(height: 24),
-          InkWell(
-            onTap: () {},
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.add_circle_outline, color: AppColors.wealth),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Agregar Moneda a la Vista',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: AppColors.onSurface,
-                        ),
-                  ),
-                ],
-              ),
+              ],
             ),
           ),
-          const SizedBox(height: 40),
-        ],
-      ),
+        ),
+        const SizedBox(height: 40),
+      ],
+    ),
     );
   }
 }

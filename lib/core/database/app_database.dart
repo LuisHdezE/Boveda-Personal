@@ -19,8 +19,7 @@ class BovedaDatabase {
       return current;
     }
 
-    final databasePath =
-        _path ??
+    final databasePath = _path ??
         path_util.join(
           await _factory.getDatabasesPath(),
           DatabaseConstants.name,
@@ -64,9 +63,9 @@ class BovedaDatabase {
   }
 
   static Future<void> _configure(Database db) async {
-    await db.execute('PRAGMA foreign_keys = ON');
-    await db.execute('PRAGMA secure_delete = ON');
-    await db.execute(
+    await db.rawQuery('PRAGMA foreign_keys = ON');
+    await db.rawQuery('PRAGMA secure_delete = ON');
+    await db.rawQuery(
       'PRAGMA busy_timeout = ${DatabaseConstants.busyTimeoutMilliseconds}',
     );
   }

@@ -1,4 +1,5 @@
 import 'package:boveda_personal/app/theme/app_colors.dart';
+import 'package:boveda_personal/features/settings/presentation/providers.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +36,23 @@ class _UpdateUsdRateViewState extends ConsumerState<UpdateUsdRateView> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(updateRateNotifierProvider, (previous, next) {
+      if (next.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error!), backgroundColor: AppColors.expense),
+        );
+      }
+      if (next.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tasa actualizada exitosamente'), backgroundColor: AppColors.income),
+        );
+        ref.read(updateRateNotifierProvider.notifier).resetSuccess();
+        _rateController.clear();
+      }
+    });
+
+    final state = ref.watch(updateRateNotifierProvider);
+
     return MainScaffold(
       title: 'Tasa de Cambio',
       showBackButton: true,
@@ -91,7 +109,7 @@ class _UpdateUsdRateViewState extends ConsumerState<UpdateUsdRateView> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'ARS',
+                          'CUP',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 color: AppColors.onSurfaceVariant,
                               ),
@@ -142,7 +160,7 @@ class _UpdateUsdRateViewState extends ConsumerState<UpdateUsdRateView> {
           const SizedBox(height: 32),
           // Input Section
           Text(
-            'NUEVA TASA (ARS)',
+            'NUEVA TASA (CUP)',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: AppColors.onSurfaceVariant,
                   letterSpacing: 1.5,
@@ -176,7 +194,7 @@ class _UpdateUsdRateViewState extends ConsumerState<UpdateUsdRateView> {
                     suffixIcon: const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        'ARS',
+                        'CUP',
                         style: TextStyle(fontSize: 22, color: AppColors.onSurfaceVariant),
                       ),
                     ),
@@ -204,10 +222,24 @@ class _UpdateUsdRateViewState extends ConsumerState<UpdateUsdRateView> {
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.sync, color: Colors.black),
+            onPressed: state.isLoading
+                ? null
+                : () {
+                    ref.read(updateRateNotifierProvider.notifier).save(
+                          baseCurrency: 'CUP',
+                          quoteCurrency: 'USD',
+                          rateText: _rateController.text,
+                        );
+                  },
+            icon: state.isLoading 
+              ? const SizedBox(
+                  width: 20, 
+                  height: 20, 
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black)
+                ) 
+              : const Icon(Icons.sync, color: Colors.black),
             label: Text(
-              'ACTUALIZAR TASA',
+              state.isLoading ? 'ACTUALIZANDO...' : 'ACTUALIZAR TASA',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.black,
                     fontWeight: FontWeight.w600,
@@ -323,7 +355,7 @@ class _HistoryItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$rate ARS',
+                  '$rate CUP',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: AppColors.onSurface,
                       ),

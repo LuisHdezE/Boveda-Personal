@@ -97,7 +97,7 @@ class _CurrencyFormSheetState extends ConsumerState<CurrencyFormSheet> {
                 style: const TextStyle(color: AppColors.onSurface),
                 decoration: const InputDecoration(
                   labelText: 'Nombre de la Moneda',
-                  hintText: 'Ej. Peso Argentino',
+                  hintText: 'Ej. Peso Cubano',
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -116,7 +116,7 @@ class _CurrencyFormSheetState extends ConsumerState<CurrencyFormSheet> {
                       textCapitalization: TextCapitalization.characters,
                       decoration: const InputDecoration(
                         labelText: 'Código (ISO)',
-                        hintText: 'Ej. ARS',
+                        hintText: 'Ej. CUP',
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {

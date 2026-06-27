@@ -33,8 +33,8 @@ class CalculatorCurrenciesNotifier extends AsyncNotifier<List<CalculatorCurrency
         ),
         CalculatorCurrency(
           id: const Uuid().v4(),
-          name: 'Peso Argentino',
-          currency: Currency(code: 'ARS', scale: 2),
+          name: 'Peso Cubano',
+          currency: Currency(code: 'CUP', scale: 2),
           symbol: '\$',
           unitsPerUsd: Decimal.parse('1050.0'),
           isActive: true,

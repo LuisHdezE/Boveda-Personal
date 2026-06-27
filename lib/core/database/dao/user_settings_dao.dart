@@ -32,6 +32,40 @@ class UserSettingsDao {
     return rows.isEmpty ? null : rows.single;
   }
 
+  Future<Map<String, Object?>?> findUserById(String id) async {
+    final db = await _database.open();
+    final rows = await db.query(
+      DatabaseTables.users,
+      columns: const [
+        'id',
+        'display_name',
+        'username',
+        'password_hash',
+        'password_salt',
+        'created_at',
+        'updated_at',
+      ],
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+    return rows.isEmpty ? null : rows.single;
+  }
+
+  Future<void> updateUser(String id, String displayName, String username) async {
+    final db = await _database.open();
+    await db.update(
+      DatabaseTables.users,
+      {
+        'display_name': displayName,
+        'username': username,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   Future<void> saveSettings(Map<String, Object?> values) async {
     final db = await _database.open();
     await db.insert(

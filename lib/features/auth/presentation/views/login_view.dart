@@ -1,5 +1,6 @@
 import 'package:boveda_personal/app/router/app_router.dart';
 import 'package:boveda_personal/app/theme/app_colors.dart';
+import 'package:boveda_personal/features/auth/presentation/providers.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,12 +25,19 @@ class _LoginViewState extends ConsumerState<LoginView> {
     super.dispose();
   }
 
-  void _onLogin() {
-    context.go(AppRoutes.dashboard);
+  Future<void> _onLogin() async {
+    final success = await ref.read(loginNotifierProvider.notifier).login(
+      _usernameController.text,
+      _passwordController.text,
+    );
+    if (success && mounted) {
+      context.go(AppRoutes.dashboard);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final loginState = ref.watch(loginNotifierProvider);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
@@ -122,12 +130,34 @@ class _LoginViewState extends ConsumerState<LoginView> {
                             });
                           },
                         ),
+                        if (loginState.error != null) ...[  
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: AppColors.expense.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.warning_amber_rounded, color: AppColors.expense, size: 18),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    loginState.error!,
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.expense),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 32),
                         Row(
                           children: [
                             Expanded(
                               child: ElevatedButton(
-                                onPressed: _onLogin,
+                                onPressed: loginState.isLoading ? null : _onLogin,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.wealth,
                                   foregroundColor: const Color(0xFF3C2F00), // text-on-secondary
@@ -138,13 +168,19 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                   elevation: 4,
                                   shadowColor: AppColors.wealth.withValues(alpha: 0.15),
                                 ),
-                                child: Text(
-                                  'Ingresar',
+                                child: loginState.isLoading
+                                     ? const SizedBox(
+                                         height: 20,
+                                         width: 20,
+                                         child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF3C2F00)),
+                                       )
+                                     : Text(
+                                   'Ingresar',
                                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                                         color: const Color(0xFF3C2F00),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                ),
+                                         fontWeight: FontWeight.w600,
+                                       ),
+                                 ),
                               ),
                             ),
                             const SizedBox(width: 12),

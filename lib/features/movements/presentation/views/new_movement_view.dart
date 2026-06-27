@@ -1,11 +1,22 @@
 import 'package:boveda_personal/app/theme/app_colors.dart';
+import 'package:boveda_personal/core/domain/value_objects/money.dart';
+import 'package:boveda_personal/core/providers/core_providers.dart';
+import 'package:boveda_personal/features/categories/domain/entities/category.dart';
+import 'package:boveda_personal/features/categories/presentation/providers.dart';
+import 'package:boveda_personal/features/categories/presentation/widgets/category_picker_sheet.dart';
+import 'package:boveda_personal/features/dashboard/presentation/providers.dart';
+import 'package:boveda_personal/features/movements/domain/entities/movement.dart';
+import 'package:boveda_personal/features/movements/presentation/providers.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class NewMovementView extends ConsumerStatefulWidget {
-  const NewMovementView({super.key});
+  const NewMovementView({super.key, this.initialMovement});
+  
+  final Movement? initialMovement;
 
   @override
   ConsumerState<NewMovementView> createState() => _NewMovementViewState();
@@ -13,8 +24,25 @@ class NewMovementView extends ConsumerStatefulWidget {
 
 class _NewMovementViewState extends ConsumerState<NewMovementView> {
   bool _isExpense = true;
+  bool _isUsd = false; // Add state to toggle currency
+  Category? _selectedCategory;
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialMovement;
+    if (initial != null) {
+      _isExpense = initial.type == MovementType.expense;
+      _isUsd = initial.amount.currency.code == 'USD';
+      _amountController.text = (initial.amount.minorUnits / 100).toString();
+      _noteController.text = initial.note ?? '';
+      // We don't have the category object loaded right away, but we can set the ID in another way
+      // or we can wait for categories to load if we need it. 
+      // For now, _selectedCategory might be tricky because we only have categoryId.
+    }
+  }
 
   @override
   void dispose() {
@@ -23,10 +51,58 @@ class _NewMovementViewState extends ConsumerState<NewMovementView> {
     super.dispose();
   }
 
+  void _onSave() async {
+    final amountText = _amountController.text;
+    if (amountText.isEmpty) return;
+
+    final balances = ref.read(accountBalancesProvider).value;
+    if (balances == null || balances.isEmpty) return;
+
+    final currencyCode = _isUsd ? 'USD' : 'CUP';
+    final account = balances.firstWhere(
+      (b) => b.currency.code == currencyCode,
+      orElse: () => balances.first,
+    );
+
+    final amountMinor = (double.parse(amountText) * 100).toInt();
+    final now = DateTime.now();
+
+    final movement = Movement(
+      id: widget.initialMovement?.id ?? ref.read(idGeneratorProvider).next(),
+      accountId: account.accountId,
+      categoryId: _selectedCategory?.id ?? widget.initialMovement?.categoryId,
+      type: _isExpense ? MovementType.expense : MovementType.income,
+      amount: Money(minorUnits: amountMinor, currency: account.currency),
+      occurredAt: widget.initialMovement?.occurredAt ?? now,
+      note: _noteController.text.isEmpty ? null : _noteController.text,
+      createdAt: widget.initialMovement?.createdAt ?? now,
+      updatedAt: now,
+    );
+
+    bool success;
+    if (widget.initialMovement != null) {
+      await ref.read(movementRepositoryProvider).update(movement);
+      success = true;
+    } else {
+      success = await ref.read(createMovementProvider.notifier).create(movement);
+    }
+    
+    if (success && mounted) {
+      ref.invalidate(recentMovementsProvider);
+      ref.invalidate(dashboardSummaryProvider);
+      ref.invalidate(accountBalancesProvider);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(widget.initialMovement != null ? 'Movimiento actualizado' : 'Movimiento registrado con éxito')),
+      );
+      context.pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MainScaffold(
-      title: 'Nuevo Movimiento',
+      title: widget.initialMovement != null ? 'Editar Movimiento' : 'Nuevo Movimiento',
       showBackButton: true,
       showBottomNav: false, // The HTML has the nav bar but the bottom is obscured by the save button.
       child: Stack(
@@ -61,18 +137,30 @@ class _NewMovementViewState extends ConsumerState<NewMovementView> {
             children: [
               _TypeSelector(
                 isExpense: _isExpense,
-                onChanged: (isExp) => setState(() => _isExpense = isExp),
+                onChanged: (isExp) {
+                  if (_isExpense != isExp) {
+                    setState(() {
+                      _isExpense = isExp;
+                      _selectedCategory = null; // Reset category on type change
+                    });
+                  }
+                },
               ),
+              const SizedBox(height: 32),
               const SizedBox(height: 32),
               _AmountInput(
                 controller: _amountController,
                 isExpense: _isExpense,
+                currencyCode: _isUsd ? 'USD' : 'CUP',
+                onCurrencyToggle: () => setState(() => _isUsd = !_isUsd),
               ),
               const SizedBox(height: 32),
               _FormDetails(
                 noteController: _noteController,
+                selectedCategory: _selectedCategory,
+                onSelectCategory: () => _showCategoryPicker(context),
               ),
-              const SizedBox(height: 100), // Padding for button
+              const SizedBox(height: 120), // Padding for button
             ],
           ),
           Positioned(
@@ -80,7 +168,7 @@ class _NewMovementViewState extends ConsumerState<NewMovementView> {
             right: 0,
             bottom: 0,
             child: Container(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.paddingOf(context).bottom),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
@@ -93,7 +181,7 @@ class _NewMovementViewState extends ConsumerState<NewMovementView> {
                 ),
               ),
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: ref.watch(createMovementProvider).isLoading ? null : _onSave,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.wealth,
                   foregroundColor: Colors.black,
@@ -102,20 +190,45 @@ class _NewMovementViewState extends ConsumerState<NewMovementView> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   elevation: 8,
-                  shadowColor: AppColors.wealth.withValues(alpha: 0.3),
+                  shadowColor: AppColors.wealth.withValues(alpha: 0.2),
                 ),
-                child: Text(
-                  'Guardar Movimiento',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w600,
+                child: ref.watch(createMovementProvider).isLoading
+                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
+                    : const Text(
+                        'GUARDAR MOVIMIENTO',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                        ),
                       ),
-                ),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showCategoryPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return CategoryPickerSheet(
+          movementType: _isExpense ? CategoryMovementType.expense : CategoryMovementType.income,
+          selectedId: _selectedCategory?.id ?? widget.initialMovement?.categoryId,
+          onSelected: (category) {
+            setState(() {
+              _selectedCategory = category;
+            });
+            context.pop();
+          },
+        );
+      },
     );
   }
 }
@@ -203,10 +316,14 @@ class _AmountInput extends StatelessWidget {
   const _AmountInput({
     required this.controller,
     required this.isExpense,
+    required this.currencyCode,
+    required this.onCurrencyToggle,
   });
 
   final TextEditingController controller;
   final bool isExpense;
+  final String currencyCode;
+  final VoidCallback onCurrencyToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -244,25 +361,29 @@ class _AmountInput extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'USD',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: AppColors.wealth,
-                    ),
-              ),
-              const SizedBox(width: 4),
-              const Icon(Icons.arrow_drop_down, color: AppColors.wealth, size: 20),
-            ],
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: onCurrencyToggle,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  currencyCode,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: AppColors.wealth,
+                      ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.sync, color: AppColors.wealth, size: 16),
+              ],
+            ),
           ),
         ),
       ],
@@ -271,9 +392,15 @@ class _AmountInput extends StatelessWidget {
 }
 
 class _FormDetails extends StatelessWidget {
-  const _FormDetails({required this.noteController});
+  const _FormDetails({
+    required this.noteController,
+    required this.selectedCategory,
+    required this.onSelectCategory,
+  });
 
   final TextEditingController noteController;
+  final Category? selectedCategory;
+  final VoidCallback onSelectCategory;
 
   @override
   Widget build(BuildContext context) {
@@ -282,8 +409,8 @@ class _FormDetails extends StatelessWidget {
         _FormRow(
           icon: Icons.category,
           label: 'Categoría',
-          value: 'Seleccionar...',
-          onTap: () {},
+          value: selectedCategory?.name ?? 'Seleccionar...',
+          onTap: onSelectCategory,
         ),
         const SizedBox(height: 12),
         _FormRow(

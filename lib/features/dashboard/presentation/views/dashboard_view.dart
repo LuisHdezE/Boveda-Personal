@@ -1,5 +1,10 @@
 import 'package:boveda_personal/app/router/app_router.dart';
 import 'package:boveda_personal/app/theme/app_colors.dart';
+import 'package:boveda_personal/core/providers/core_providers.dart';
+import 'package:boveda_personal/features/dashboard/presentation/providers.dart';
+import 'package:boveda_personal/features/movements/domain/entities/movement.dart';
+import 'package:boveda_personal/features/settings/presentation/providers/calculator_currencies_provider.dart';
+import 'package:boveda_personal/shared/presentation/widgets/expandable_fab.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +18,41 @@ class DashboardView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return MainScaffold(
       title: 'Bóveda Personal',
+      floatingActionButton: ExpandableFab(
+        distance: 72.0,
+        children: [
+          FloatingActionButton.small(
+            heroTag: 'calc_fab',
+            backgroundColor: AppColors.surfaceHigh,
+            onPressed: () => context.push('/calculator'),
+            child: const Icon(Icons.calculate_outlined, color: AppColors.wealth),
+          ),
+          FloatingActionButton.small(
+            heroTag: 'conv_fab',
+            backgroundColor: AppColors.surfaceHigh,
+            onPressed: () => context.push('/converter'),
+            child: const Icon(Icons.currency_exchange_outlined, color: AppColors.wealth),
+          ),
+          FloatingActionButton.small(
+            heroTag: 'sim_fab',
+            backgroundColor: AppColors.surfaceHigh,
+            onPressed: () => context.push('/simulator'),
+            child: const Icon(Icons.analytics_outlined, color: AppColors.wealth),
+          ),
+          FloatingActionButton.small(
+            heroTag: 'debts_fab',
+            backgroundColor: AppColors.surfaceHigh,
+            onPressed: () => context.push('/debts'),
+            child: const Icon(Icons.money_off_outlined, color: AppColors.wealth),
+          ),
+          FloatingActionButton.small(
+            heroTag: 'subs_fab',
+            backgroundColor: AppColors.surfaceHigh,
+            onPressed: () => context.push('/subscriptions'),
+            child: const Icon(Icons.event_repeat_outlined, color: AppColors.wealth),
+          ),
+        ],
+      ),
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         children: const [
@@ -23,20 +63,29 @@ class DashboardView extends ConsumerWidget {
           _ChartSection(),
           SizedBox(height: 24),
           _RecentMovementsSection(),
-          SizedBox(height: 24),
-          _ToolsSection(),
-          SizedBox(height: 80), // Padding for bottom nav bar
+          SizedBox(height: 120), // Padding for bottom nav bar
         ],
       ),
     );
   }
 }
 
-class _BalanceCard extends StatelessWidget {
+class _BalanceCard extends ConsumerStatefulWidget {
   const _BalanceCard();
 
   @override
+  ConsumerState<_BalanceCard> createState() => _BalanceCardState();
+}
+
+class _BalanceCardState extends ConsumerState<_BalanceCard> {
+  bool _showInSecondary = false;
+
+  @override
   Widget build(BuildContext context) {
+    final balancesAsync = ref.watch(accountBalancesProvider);
+    final settingsAsync = ref.watch(appSettingsProvider);
+    final currenciesAsync = ref.watch(calculatorCurrenciesProvider);
+
     return GlassCard(
       child: Stack(
         children: [
@@ -70,7 +119,11 @@ class _BalanceCard extends StatelessWidget {
                           ),
                     ),
                     InkWell(
-                      onTap: () {},
+                      onTap: () {
+                        setState(() {
+                          _showInSecondary = !_showInSecondary;
+                        });
+                      },
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
                         padding: const EdgeInsets.all(8),
@@ -82,7 +135,7 @@ class _BalanceCard extends StatelessWidget {
                           ),
                         ),
                         child: const Icon(
-                          Icons.account_balance_wallet,
+                          Icons.swap_horiz,
                           color: AppColors.wealth,
                           size: 20,
                         ),
@@ -91,42 +144,106 @@ class _BalanceCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      '\$',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            color: AppColors.wealth.withValues(alpha: 0.7),
+                // Dynamic Balance Calculation
+                Builder(builder: (context) {
+                  if (balancesAsync.isLoading || settingsAsync.isLoading || currenciesAsync.isLoading) {
+                    return const CircularProgressIndicator(strokeWidth: 2);
+                  }
+
+                  final balances = balancesAsync.asData?.value ?? [];
+                  final settings = settingsAsync.asData?.value;
+                  final currencies = currenciesAsync.asData?.value ?? [];
+
+                  if (settings == null || currencies.isEmpty) {
+                    return Text('...', style: Theme.of(context).textTheme.displayLarge);
+                  }
+
+                  double totalUsd = 0.0;
+
+                  for (final b in balances) {
+                    final currInfo = currencies.firstWhere(
+                      (c) => c.currency.code == b.currency.code,
+                      orElse: () => currencies.first,
+                    );
+                    final unitsPerUsd = currInfo.unitsPerUsd.toDouble();
+                    final amount = b.balance.minorUnits / 100.0;
+                    if (unitsPerUsd > 0) {
+                      totalUsd += amount / unitsPerUsd;
+                    }
+                  }
+
+                  String displayCode = 'USD';
+                  double displayAmount = totalUsd;
+
+                  if (_showInSecondary) {
+                    displayCode = settings.primaryCurrencyCode;
+                    final targetCurrInfo = currencies.firstWhere(
+                      (c) => c.currency.code == displayCode,
+                      orElse: () => currencies.first,
+                    );
+                    displayAmount = totalUsd * targetCurrInfo.unitsPerUsd.toDouble();
+                  }
+
+                  final amountParts = displayAmount.toStringAsFixed(2).split('.');
+                  final integerPart = amountParts[0].replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
+                  final decimalPart = amountParts.length > 1 ? amountParts[1] : '00';
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            '$displayCode ',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: AppColors.wealth.withValues(alpha: 0.7),
+                                ),
                           ),
-                    ),
-                    Text(
-                      '142,500',
-                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                            color: AppColors.wealth,
+                          Text(
+                            '\$',
+                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                  color: AppColors.wealth.withValues(alpha: 0.7),
+                                ),
                           ),
-                    ),
-                    Text(
-                      '.00',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: AppColors.wealth.withValues(alpha: 0.7),
+                          Text(
+                            integerPart,
+                            style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                                  color: AppColors.wealth,
+                                ),
                           ),
-                    ),
-                  ],
-                ),
+                          Text(
+                            '.$decimalPart',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  color: AppColors.wealth.withValues(alpha: 0.7),
+                                ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                }),
                 const SizedBox(height: 24),
-                Row(
-                  children: [
-                    _CurrencyBalance(currency: 'USD', amount: '\$12,450.00'),
-                    Container(
-                      height: 16,
-                      width: 1,
-                      color: Colors.white.withValues(alpha: 0.1),
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    _CurrencyBalance(currency: 'ARS', amount: '\$1,250,000'),
-                  ],
+                balancesAsync.when(
+                  data: (balances) {
+                    if (balances.isEmpty) {
+                      return Text('No hay cuentas configuradas.', style: Theme.of(context).textTheme.bodyMedium);
+                    }
+                    return Row(
+                      children: balances.map((b) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 16),
+                          child: _CurrencyBalance(
+                            currency: b.currency.code,
+                            amount: '\$${(b.balance.minorUnits / 100).toStringAsFixed(2)}',
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const Text('Error cargando saldos'),
                 ),
               ],
             ),
@@ -168,46 +285,58 @@ class _CurrencyBalance extends StatelessWidget {
   }
 }
 
-class _SummaryRow extends StatelessWidget {
+class _SummaryRow extends ConsumerWidget {
   const _SummaryRow();
 
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _SummaryCard(
-            icon: Icons.arrow_upward,
-            iconColor: AppColors.income,
-            title: 'Ingresos',
-            amount: '+\$4,200',
-            amountColor: AppColors.income,
-            onTap: () {},
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _SummaryCard(
-            icon: Icons.arrow_downward,
-            iconColor: AppColors.expense,
-            title: 'Gastos',
-            amount: '-\$1,850',
-            amountColor: AppColors.expense,
-            onTap: () {},
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _SummaryCard(
-            icon: Icons.savings,
-            iconColor: AppColors.onSurface,
-            title: 'Ahorro',
-            amount: '\$2,350',
-            amountColor: AppColors.onSurface,
-            onTap: () {},
-          ),
-        ),
-      ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final summaryAsync = ref.watch(dashboardSummaryProvider);
+    
+    return summaryAsync.when(
+      data: (summary) {
+        final incomeAmount = summary.income / 100;
+        final expenseAmount = summary.expense / 100;
+        final savingsAmount = incomeAmount - expenseAmount;
+        
+        return Row(
+          children: [
+            Expanded(
+              child: _SummaryCard(
+                icon: Icons.arrow_upward,
+                iconColor: AppColors.income,
+                title: 'Ingresos',
+                amount: '+\$${incomeAmount.toStringAsFixed(2)}',
+                amountColor: AppColors.income,
+                onTap: () {},
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _SummaryCard(
+                icon: Icons.arrow_downward,
+                iconColor: AppColors.expense,
+                title: 'Gastos',
+                amount: '-\$${expenseAmount.toStringAsFixed(2)}',
+                amountColor: AppColors.expense,
+                onTap: () {},
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _SummaryCard(
+                icon: Icons.savings,
+                iconColor: AppColors.onSurface,
+                title: 'Ahorro',
+                amount: '\$${savingsAmount.toStringAsFixed(2)}',
+                amountColor: AppColors.onSurface,
+                onTap: () {},
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Text('Error: $e'),
     );
   }
 }
@@ -359,11 +488,12 @@ class _MockChartPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class _RecentMovementsSection extends StatelessWidget {
+class _RecentMovementsSection extends ConsumerWidget {
   const _RecentMovementsSection();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final recentAsync = ref.watch(recentMovementsProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -386,28 +516,31 @@ class _RecentMovementsSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        const _MovementTile(
-          icon: Icons.restaurant,
-          title: 'Cena La Mar',
-          category: 'Restaurantes',
-          amount: '-\$125.00',
-          isExpense: true,
-        ),
-        const SizedBox(height: 8),
-        const _MovementTile(
-          icon: Icons.work,
-          title: 'Honorarios Consultoría',
-          category: 'Ingresos',
-          amount: '+\$2,500.00',
-          isExpense: false,
-        ),
-        const SizedBox(height: 8),
-        const _MovementTile(
-          icon: Icons.shopping_cart,
-          title: 'Supermercado',
-          category: 'Gastos Fijos',
-          amount: '-\$340.50',
-          isExpense: true,
+        recentAsync.when(
+          data: (movements) {
+            if (movements.isEmpty) {
+              return Center(
+                child: Text('No hay movimientos recientes', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant)),
+              );
+            }
+            return Column(
+              children: movements.map((m) {
+                final isExpense = m.type == MovementType.expense;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: _MovementTile(
+                    icon: isExpense ? Icons.arrow_downward : Icons.arrow_upward,
+                    title: m.note ?? (isExpense ? 'Gasto' : 'Ingreso'),
+                    category: 'Movimiento', // TODO: Fetch category name
+                    amount: '${isExpense ? '-' : '+'}\$${(m.amount.minorUnits / 100).toStringAsFixed(2)}',
+                    isExpense: isExpense,
+                  ),
+                );
+              }).toList(),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, st) => Center(child: Text('Error: $e')),
         ),
       ],
     );
@@ -475,85 +608,6 @@ class _MovementTile extends StatelessWidget {
                 ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ToolsSection extends StatelessWidget {
-  const _ToolsSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Herramientas',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          clipBehavior: Clip.none,
-          child: Row(
-            children: [
-              _ToolCard(
-                icon: Icons.calculate_outlined,
-                title: 'Calculadora',
-                onTap: () => context.push('/calculator'),
-              ),
-              const SizedBox(width: 12),
-              _ToolCard(
-                icon: Icons.currency_exchange_outlined,
-                title: 'Conversor',
-                onTap: () => context.push('/converter'),
-              ),
-              const SizedBox(width: 12),
-              _ToolCard(
-                icon: Icons.analytics_outlined,
-                title: 'Simulador',
-                onTap: () => context.push('/simulator'),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ToolCard extends StatelessWidget {
-  const _ToolCard({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 120,
-      child: GlassCard(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-        onTap: onTap,
-        child: Column(
-          children: [
-            Icon(icon, color: AppColors.wealth, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: AppColors.onSurface,
-                  ),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:boveda_personal/app/theme/app_colors.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class MovementFiltersView extends StatelessWidget {
   const MovementFiltersView({super.key});
@@ -14,7 +15,7 @@ class MovementFiltersView extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: AppColors.onSurfaceVariant),
-          onPressed: () {},
+          onPressed: () => context.pop(),
         ),
         title: const Text(
           'Filtros',
@@ -107,31 +108,7 @@ class MovementFiltersView extends StatelessWidget {
               ),
               const _SectionDivider(),
 
-              // Categorías
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const _SectionTitle('Categorías'),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text('Seleccionar todo', style: TextStyle(color: AppColors.wealth)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 12,
-                runSpacing: 16,
-                alignment: WrapAlignment.spaceBetween,
-                children: [
-                  _CategoryItem(icon: Icons.restaurant, label: 'Alimentación', isSelected: true),
-                  _CategoryItem(icon: Icons.directions_car, label: 'Transporte', isSelected: false),
-                  _CategoryItem(icon: Icons.favorite, label: 'Salud', isSelected: false),
-                  _CategoryItem(icon: Icons.movie, label: 'Ocio', isSelected: true),
-                  _CategoryItem(icon: Icons.home, label: 'Hogar', isSelected: false),
-                  _CategoryItem(icon: Icons.shopping_bag, label: 'Compras', isSelected: false),
-                ],
-              ),
+              // La selección de categorías ha sido simplificada o delegada.
               const _SectionDivider(),
 
               // Moneda
@@ -141,7 +118,7 @@ class MovementFiltersView extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _CurrencyRadio(
-                      title: 'ARS',
+                      title: 'CUP',
                       subtitle: 'Pesos',
                       isSelected: true,
                     ),
@@ -207,30 +184,32 @@ class MovementFiltersView extends StatelessWidget {
             left: 0,
             right: 0,
             bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceContainerLowest.withValues(alpha: 0.9),
-                border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
-              ),
-              child: ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.filter_list, color: Colors.black),
-                label: const Text(
-                  'Aplicar Filtros (12 resultados)',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+            child: SafeArea(
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainerLowest.withValues(alpha: 0.9),
+                  border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.wealth,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+                child: ElevatedButton.icon(
+                  onPressed: () => context.pop(),
+                  icon: const Icon(Icons.filter_list, color: Colors.black),
+                  label: const Text(
+                    'Aplicar Filtros',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  elevation: 8,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.wealth,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    elevation: 8,
+                  ),
                 ),
               ),
             ),

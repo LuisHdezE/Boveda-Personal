@@ -1,14 +1,56 @@
 import 'package:boveda_personal/app/theme/app_colors.dart';
+import 'package:boveda_personal/core/providers/core_providers.dart';
+import 'package:boveda_personal/features/auth/presentation/providers.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProfileView extends ConsumerWidget {
+final profileUserProvider = FutureProvider.autoDispose<Map<String, Object?>?>((ref) async {
+  final session = ref.watch(sessionProvider);
+  if (session.userId == null) return null;
+  return ref.watch(userSettingsDaoProvider).findUserById(session.userId!);
+});
+
+class ProfileView extends ConsumerStatefulWidget {
   const ProfileView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileView> createState() => _ProfileViewState();
+}
+
+class _ProfileViewState extends ConsumerState<ProfileView> {
+  bool _isEditing = false;
+  final _nameController = TextEditingController();
+  final _usernameController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _usernameController.dispose();
+    super.dispose();
+  }
+
+  void _onSave(String userId) async {
+    final name = _nameController.text.trim();
+    final username = _usernameController.text.trim();
+    if (name.isEmpty || username.isEmpty) return;
+
+    await ref.read(userSettingsDaoProvider).updateUser(userId, name, username);
+    ref.invalidate(profileUserProvider);
+    if (mounted) {
+      setState(() {
+        _isEditing = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Perfil actualizado correctamente')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final asyncUser = ref.watch(profileUserProvider);
     return MainScaffold(
       title: 'Perfil',
       showBackButton: true,
@@ -62,49 +104,133 @@ class ProfileView extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Text(
-                  'Alexis Valenzuela',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: AppColors.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '@avalenzuela',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.email, size: 16, color: AppColors.onSurfaceVariant),
-                    const SizedBox(width: 8),
-                    Text(
-                      'alexis.v@bovedapersonal.com',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.onSurfaceVariant,
+                asyncUser.when(
+                  data: (userMap) {
+                    if (userMap == null) return const Text('Usuario no encontrado');
+                    final userId = userMap['id'] as String;
+                    final displayName = userMap['display_name'] as String;
+                    final username = userMap['username'] as String;
+
+                    if (!_isEditing) {
+                      _nameController.text = displayName;
+                      _usernameController.text = username;
+                    }
+
+                    return Column(
+                      children: [
+                        if (_isEditing) ...[
+                          GlassCard(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            child: TextField(
+                              controller: _nameController,
+                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                    color: AppColors.onSurface,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                hintText: 'Nombre y Apellido',
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.edit, size: 18),
-                  label: const Text('Editar Perfil'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.wealth,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    elevation: 4,
-                    shadowColor: AppColors.wealth.withValues(alpha: 0.15),
-                  ),
+                          const SizedBox(height: 8),
+                          GlassCard(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            child: TextField(
+                              controller: _usernameController,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.onSurfaceVariant,
+                                  ),
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                hintText: 'Usuario',
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ] else ...[
+                          Text(
+                            displayName,
+                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                  color: AppColors.onSurface,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '@$username',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.email, size: 16, color: AppColors.onSurfaceVariant),
+                            const SizedBox(width: 8),
+                            Text(
+                              'usuario@bovedapersonal.com',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        if (_isEditing) ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _isEditing = false;
+                                  });
+                                },
+                                child: const Text('Cancelar', style: TextStyle(color: AppColors.onSurfaceVariant)),
+                              ),
+                              const SizedBox(width: 16),
+                              ElevatedButton(
+                                onPressed: () => _onSave(userId),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.wealth,
+                                  foregroundColor: Colors.black,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                                ),
+                                child: const Text('Guardar'),
+                              ),
+                            ],
+                          )
+                        ] else ...[
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _isEditing = true;
+                              });
+                            },
+                            icon: const Icon(Icons.edit, size: 18),
+                            label: const Text('Editar Perfil'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.wealth,
+                              foregroundColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              elevation: 4,
+                              shadowColor: AppColors.wealth.withValues(alpha: 0.15),
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
+                  loading: () => const CircularProgressIndicator(),
+                  error: (e, _) => Text('Error: $e'),
                 ),
               ],
             ),

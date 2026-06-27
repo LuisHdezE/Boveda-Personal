@@ -1,8 +1,10 @@
 import 'package:boveda_personal/app/theme/app_colors.dart';
+import 'package:boveda_personal/features/simulator/domain/simulation_data.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class SimulatorView extends ConsumerStatefulWidget {
   const SimulatorView({super.key});
@@ -12,15 +14,17 @@ class SimulatorView extends ConsumerStatefulWidget {
 }
 
 class _SimulatorViewState extends ConsumerState<SimulatorView> {
-  String _currency = 'ARS';
+  String _currency = 'CUP';
   final _initialBalanceController = TextEditingController(text: '100000');
   final _monthlySavingsController = TextEditingController(text: '25000');
+  final _rateController = TextEditingController(text: '10');
   double _years = 5;
 
   @override
   void dispose() {
     _initialBalanceController.dispose();
     _monthlySavingsController.dispose();
+    _rateController.dispose();
     super.dispose();
   }
 
@@ -66,9 +70,9 @@ class _SimulatorViewState extends ConsumerState<SimulatorView> {
                           children: [
                             Expanded(
                               child: _CurrencyTab(
-                                label: 'ARS (\$)',
-                                isSelected: _currency == 'ARS',
-                                onTap: () => setState(() => _currency = 'ARS'),
+                                label: 'CUP (\$)',
+                                isSelected: _currency == 'CUP',
+                                onTap: () => setState(() => _currency = 'CUP'),
                               ),
                             ),
                             Expanded(
@@ -98,6 +102,12 @@ class _SimulatorViewState extends ConsumerState<SimulatorView> {
                       _SimulatorInput(
                         label: 'Ahorro Mensual Estimado',
                         controller: _monthlySavingsController,
+                      ),
+                      Divider(height: 24, color: Colors.white.withValues(alpha: 0.05)),
+                      _SimulatorInput(
+                        label: 'Tasa Anual Esperada (%)',
+                        controller: _rateController,
+                        prefix: '%',
                       ),
                     ],
                   ),
@@ -181,7 +191,7 @@ class _SimulatorViewState extends ConsumerState<SimulatorView> {
           ),
           // Bottom Actions
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.paddingOf(context).bottom),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.bottomCenter,
@@ -220,7 +230,19 @@ class _SimulatorViewState extends ConsumerState<SimulatorView> {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    final initial = double.tryParse(_initialBalanceController.text) ?? 0;
+                    final savings = double.tryParse(_monthlySavingsController.text) ?? 0;
+                    final rate = double.tryParse(_rateController.text) ?? 0;
+                    final data = SimulationData(
+                      initialBalance: initial,
+                      monthlySavings: savings,
+                      annualRate: rate,
+                      years: _years.toInt(),
+                      currency: _currency,
+                    );
+                    context.push('/simulator/result', extra: data);
+                  },
                   icon: const Icon(Icons.trending_up, color: Colors.black),
                   label: Text(
                     'Calcular Proyección',
@@ -287,10 +309,12 @@ class _SimulatorInput extends StatelessWidget {
   const _SimulatorInput({
     required this.label,
     required this.controller,
+    this.prefix = '\$',
   });
 
   final String label;
   final TextEditingController controller;
+  final String prefix;
 
   @override
   Widget build(BuildContext context) {
@@ -313,9 +337,9 @@ class _SimulatorInput extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              const Text(
-                '\$',
-                style: TextStyle(
+              Text(
+                prefix,
+                style: const TextStyle(
                   fontSize: 22,
                   color: AppColors.wealth,
                   fontWeight: FontWeight.w500,

@@ -8,6 +8,8 @@ abstract final class DatabaseTables {
   static const exchangeRates = 'exchange_rates';
   static const calculatorCurrencies = 'calculator_currencies';
   static const simulationHistory = 'simulation_history';
+  static const debts = 'debts';
+  static const subscriptions = 'subscriptions';
 }
 
 abstract final class DatabaseViews {
@@ -76,7 +78,7 @@ abstract final class DatabaseSeeds {
 }
 
 abstract final class DatabaseSchema {
-  static const version = 1;
+  static const version = 2;
 
   static const requiredObjects = <String>{
     DatabaseTables.users,
@@ -88,6 +90,8 @@ abstract final class DatabaseSchema {
     DatabaseTables.exchangeRates,
     DatabaseTables.calculatorCurrencies,
     DatabaseTables.simulationHistory,
+    DatabaseTables.debts,
+    DatabaseTables.subscriptions,
     DatabaseViews.accountBalances,
     'idx_movements_occurred_at',
     'idx_movements_account_occurred_at',
@@ -526,6 +530,33 @@ abstract final class DatabaseSchema {
         'transfer financial fields are immutable; replace atomically'
       );
     END
+    ''',
+    '''
+    CREATE TABLE ${DatabaseTables.debts} (
+      id TEXT PRIMARY KEY NOT NULL,
+      user_id TEXT NOT NULL REFERENCES ${DatabaseTables.users}(id) ON DELETE CASCADE,
+      name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+      amount_minor INTEGER NOT NULL,
+      currency_code TEXT NOT NULL CHECK (length(currency_code) = 3),
+      due_date TEXT,
+      is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+    ''',
+    '''
+    CREATE TABLE ${DatabaseTables.subscriptions} (
+      id TEXT PRIMARY KEY NOT NULL,
+      user_id TEXT NOT NULL REFERENCES ${DatabaseTables.users}(id) ON DELETE CASCADE,
+      name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+      amount_minor INTEGER NOT NULL,
+      currency_code TEXT NOT NULL CHECK (length(currency_code) = 3),
+      billing_cycle TEXT NOT NULL CHECK (billing_cycle IN ('monthly', 'yearly', 'weekly')),
+      next_billing_date TEXT NOT NULL,
+      is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
     ''',
   ];
 }

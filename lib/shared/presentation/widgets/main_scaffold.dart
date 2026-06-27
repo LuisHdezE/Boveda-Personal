@@ -11,12 +11,14 @@ class MainScaffold extends StatelessWidget {
     this.showBottomNav = true,
     this.title = 'Bóveda Personal',
     this.showBackButton = false,
+    this.floatingActionButton,
   });
 
   final Widget child;
   final bool showBottomNav;
   final String title;
   final bool showBackButton;
+  final Widget? floatingActionButton;
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +68,7 @@ class MainScaffold extends StatelessWidget {
         ],
       ),
       body: child,
+      floatingActionButton: floatingActionButton,
       bottomNavigationBar: showBottomNav ? const BottomNavBar() : null,
     );
   }

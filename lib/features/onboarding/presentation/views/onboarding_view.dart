@@ -1,8 +1,15 @@
 import 'dart:ui';
 
+import 'package:boveda_personal/app/router/app_router.dart';
 import 'package:boveda_personal/app/theme/app_colors.dart';
+import 'package:boveda_personal/core/domain/value_objects/currency.dart';
+import 'package:boveda_personal/core/domain/value_objects/money.dart';
+import 'package:boveda_personal/features/onboarding/domain/entities/onboarding_setup.dart';
+import 'package:boveda_personal/features/onboarding/presentation/providers.dart';
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class OnboardingView extends ConsumerStatefulWidget {
   const OnboardingView({super.key});
@@ -12,11 +19,77 @@ class OnboardingView extends ConsumerStatefulWidget {
 }
 
 class _OnboardingViewState extends ConsumerState<OnboardingView> {
+  final _nameController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _rateController = TextEditingController(text: '1000.0');
+  final _usdBalanceController = TextEditingController(text: '0.00');
+  final _cupBalanceController = TextEditingController(text: '0.00');
+
   bool _isUsdMain = true;
   bool _obscurePassword = true;
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _rateController.dispose();
+    _usdBalanceController.dispose();
+    _cupBalanceController.dispose();
+    super.dispose();
+  }
+
+  void _onFinish() async {
+    final cup = Currency(code: 'CUP', scale: 2);
+    final usd = Currency(code: 'USD', scale: 2);
+
+    final primaryCurrency = _isUsdMain ? usd : cup;
+    final secondaryCurrency = _isUsdMain ? cup : usd;
+
+    try {
+      final initialExchangeRate = Decimal.parse(_rateController.text);
+      final primaryMinor = (double.parse(_isUsdMain ? _usdBalanceController.text : _cupBalanceController.text) * 100).toInt();
+      final secondaryMinor = (double.parse(_isUsdMain ? _cupBalanceController.text : _usdBalanceController.text) * 100).toInt();
+
+      final setup = OnboardingSetup(
+        displayName: _nameController.text,
+        username: _usernameController.text,
+        password: _passwordController.text,
+        primaryCurrency: primaryCurrency,
+        secondaryCurrency: secondaryCurrency,
+        initialExchangeRate: initialExchangeRate,
+        primaryOpeningBalance: Money(minorUnits: primaryMinor, currency: primaryCurrency),
+        secondaryOpeningBalance: Money(minorUnits: secondaryMinor, currency: secondaryCurrency),
+        locale: 'es_AR',
+      );
+
+      await ref.read(onboardingNotifierProvider.notifier).configure(setup);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error en los datos ingresados: $e')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    ref.listen(onboardingNotifierProvider, (previous, next) {
+      if (next.completed && mounted) {
+        context.go(AppRoutes.login);
+      }
+      if (next.error != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.error!),
+            backgroundColor: AppColors.expense,
+          ),
+        );
+      }
+    });
+
+    final onboardingState = ref.watch(onboardingNotifierProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
@@ -86,18 +159,21 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
                           indicatorColor: AppColors.surfaceHighest.withValues(alpha: 0.5),
                           children: [
                             _buildInputField(
+                              controller: _nameController,
                               label: 'Nombre Completo',
                               hint: 'Ej. Juan Pérez',
                               icon: Icons.person_outline,
                             ),
                             const SizedBox(height: 16),
                             _buildInputField(
+                              controller: _usernameController,
                               label: 'Nombre de Usuario',
                               hint: 'usuario123',
                               icon: Icons.alternate_email,
                             ),
                             const SizedBox(height: 16),
                             _buildInputField(
+                              controller: _passwordController,
                               label: 'Contraseña Maestra',
                               hint: '••••••••',
                               icon: Icons.lock_outline,
@@ -155,7 +231,8 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
                             ),
                             const SizedBox(height: 16),
                             _buildInputField(
-                              label: 'Tasa de Cambio Inicial (USD a ARS)',
+                              controller: _rateController,
+                              label: 'Tasa de Cambio Inicial (USD a CUP)',
                               hint: 'Ej. 1050.50',
                               icon: Icons.currency_exchange,
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -172,6 +249,7 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
                           iconColor: AppColors.wealth,
                           children: [
                             _buildInputField(
+                              controller: _usdBalanceController,
                               label: 'Saldo Inicial (USD)',
                               hint: '0.00',
                               prefixText: '\$',
@@ -180,7 +258,8 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
                             ),
                             const SizedBox(height: 16),
                             _buildInputField(
-                              label: 'Saldo Inicial (ARS)',
+                              controller: _cupBalanceController,
+                              label: 'Saldo Inicial (CUP)',
                               hint: '0.00',
                               prefixText: '\$',
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -215,9 +294,7 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
                   child: SafeArea(
                     top: false,
                     child: InkWell(
-                      onTap: () {
-                        // TODO: Implement finish
-                      },
+                      onTap: onboardingState.isLoading ? null : _onFinish,
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
                         height: 56,
@@ -235,16 +312,27 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              'Finalizar',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: const Color(0xFF3C2F00), // on-secondary
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
+                            if (onboardingState.isLoading)
+                              const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Color(0xFF3C2F00),
+                                ),
+                              )
+                            else ...[
+                              Text(
+                                'Finalizar',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: const Color(0xFF3C2F00), // on-secondary
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.check_circle, color: Color(0xFF3C2F00)),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.check_circle, color: Color(0xFF3C2F00)),
+                            ],
                           ],
                         ),
                       ),
@@ -272,11 +360,12 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
     required String label,
     required String hint,
     IconData? icon,
-    String? prefixText,
     bool obscureText = false,
     Widget? suffixIcon,
+    String? prefixText,
     TextInputType? keyboardType,
     TextAlign textAlign = TextAlign.start,
+    TextEditingController? controller,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -284,6 +373,7 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
         _buildLabel(label),
         const SizedBox(height: 8),
         TextField(
+          controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,
           textAlign: textAlign,

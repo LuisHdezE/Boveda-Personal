@@ -1,8 +1,14 @@
 import 'package:boveda_personal/app/theme/app_colors.dart';
+import 'package:boveda_personal/core/domain/value_objects/money.dart';
+import 'package:boveda_personal/core/providers/core_providers.dart';
+import 'package:boveda_personal/features/dashboard/presentation/providers.dart';
+import 'package:boveda_personal/features/movements/domain/entities/movement.dart';
+import 'package:boveda_personal/features/movements/presentation/providers.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class ConverterView extends ConsumerStatefulWidget {
   const ConverterView({super.key});
@@ -12,23 +18,156 @@ class ConverterView extends ConsumerStatefulWidget {
 }
 
 class _ConverterViewState extends ConsumerState<ConverterView> {
-  final _amountController = TextEditingController(text: '100000');
-  bool _isArsToUsd = true;
+  final _amountController = TextEditingController();
+  final _rateController = TextEditingController(text: '320'); // Default rate CUP/USD
+  bool _isCupToUsd = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _amountController.addListener(_onAmountChanged);
+    _rateController.addListener(_onAmountChanged);
+  }
+
+  void _onAmountChanged() {
+    setState(() {}); // Rebuild to update "Recibirás (Aprox)"
+  }
 
   @override
   void dispose() {
     _amountController.dispose();
+    _rateController.dispose();
     super.dispose();
   }
 
   void _swapCurrencies() {
     setState(() {
-      _isArsToUsd = !_isArsToUsd;
+      _isCupToUsd = !_isCupToUsd;
     });
+  }
+
+  Future<void> _performConversion() async {
+    final balances = ref.read(accountBalancesProvider).value;
+    if (balances == null) return;
+
+    final cupAccount = balances.firstWhere((b) => b.currency.code == 'CUP', orElse: () => balances.first);
+    final usdAccount = balances.firstWhere((b) => b.currency.code == 'USD', orElse: () => balances.last);
+
+    final sourceAccount = _isCupToUsd ? cupAccount : usdAccount;
+    final targetAccount = _isCupToUsd ? usdAccount : cupAccount;
+
+    final sourceAmountStr = _amountController.text.replaceAll(',', '.');
+    final rateStr = _rateController.text.replaceAll(',', '.');
+
+    final sourceAmount = double.tryParse(sourceAmountStr) ?? 0;
+    final rate = double.tryParse(rateStr) ?? 0;
+
+    if (sourceAmount <= 0 || rate <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, ingresa montos válidos')),
+      );
+      return;
+    }
+
+    final sourceMinorUnits = (sourceAmount * 100).toInt();
+    if (sourceMinorUnits > sourceAccount.balance.minorUnits) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Saldo insuficiente en la cuenta de origen')),
+      );
+      return;
+    }
+
+    // Calculate target amount
+    double targetAmount;
+    if (_isCupToUsd) {
+      targetAmount = sourceAmount / rate;
+    } else {
+      targetAmount = sourceAmount * rate;
+    }
+    final targetMinorUnits = (targetAmount * 100).toInt();
+
+    final now = DateTime.now();
+    final repo = ref.read(movementRepositoryProvider);
+    final idGen = ref.read(idGeneratorProvider);
+
+    // 1. Withdrawal (Expense)
+    final expense = Movement(
+      id: idGen.next(),
+      accountId: sourceAccount.accountId,
+      type: MovementType.expense,
+      amount: Money(minorUnits: sourceMinorUnits, currency: sourceAccount.currency),
+      occurredAt: now,
+      note: 'Conversión de moneda (Salida)',
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    // 2. Deposit (Income)
+    final income = Movement(
+      id: idGen.next(),
+      accountId: targetAccount.accountId,
+      type: MovementType.income,
+      amount: Money(minorUnits: targetMinorUnits, currency: targetAccount.currency),
+      occurredAt: now,
+      note: 'Conversión de moneda (Entrada)',
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    try {
+      await repo.create(expense);
+      await repo.create(income);
+
+      ref.invalidate(recentMovementsProvider);
+      ref.invalidate(dashboardSummaryProvider);
+      ref.invalidate(accountBalancesProvider);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Conversión realizada con éxito')),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al procesar la conversión')),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final balances = ref.watch(accountBalancesProvider).value;
+    if (balances == null) {
+      return const MainScaffold(
+        title: 'Conversión de Moneda',
+        showBackButton: true,
+        showBottomNav: false,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final cupAccount = balances.firstWhere((b) => b.currency.code == 'CUP', orElse: () => balances.first);
+    final usdAccount = balances.firstWhere((b) => b.currency.code == 'USD', orElse: () => balances.last);
+
+    final sourceAccount = _isCupToUsd ? cupAccount : usdAccount;
+    final targetAccount = _isCupToUsd ? usdAccount : cupAccount;
+
+    // Calculate approximate received amount
+    final sourceAmount = double.tryParse(_amountController.text.replaceAll(',', '.')) ?? 0.0;
+    final rate = double.tryParse(_rateController.text.replaceAll(',', '.')) ?? 0.0;
+    
+    double receivedAmount = 0.0;
+    if (rate > 0) {
+      if (_isCupToUsd) {
+        receivedAmount = sourceAmount / rate;
+      } else {
+        receivedAmount = sourceAmount * rate;
+      }
+    }
+
     return MainScaffold(
       title: 'Conversión de Moneda',
       showBackButton: true,
@@ -37,7 +176,7 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         children: [
           Text(
-            'Transfiere fondos entre tus saldos de ARS y USD al instante.',
+            'Transfiere fondos entre tus saldos al instante.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: AppColors.onSurfaceVariant,
                 ),
@@ -47,7 +186,6 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
             padding: const EdgeInsets.all(24),
             child: Stack(
               children: [
-                // Background radial gradient texture
                 Positioned.fill(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
@@ -74,22 +212,21 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
                           children: [
                             _AccountSelector(
                               label: 'Origen',
-                              currencySymbol: _isArsToUsd ? 'AR\$' : 'U\$D',
-                              currencyColor: _isArsToUsd ? AppColors.onSurface : AppColors.wealth,
-                              accountName: _isArsToUsd ? 'Caja de Ahorro' : 'Cuenta Corriente',
-                              balance: _isArsToUsd ? '\$ 1.500.000,00' : 'USD 4.250,00',
+                              currencySymbol: sourceAccount.currency.code == 'CUP' ? '\$' : 'USD',
+                              currencyColor: _isCupToUsd ? AppColors.onSurface : AppColors.wealth,
+                              accountName: 'Cuenta ${sourceAccount.currency.code}',
+                              balance: (sourceAccount.balance.minorUnits / 100).toStringAsFixed(2),
                             ),
                             const SizedBox(height: 16),
                             _AccountSelector(
                               label: 'Destino',
-                              currencySymbol: _isArsToUsd ? 'U\$D' : 'AR\$',
-                              currencyColor: _isArsToUsd ? AppColors.wealth : AppColors.onSurface,
-                              accountName: _isArsToUsd ? 'Cuenta Corriente' : 'Caja de Ahorro',
-                              balance: _isArsToUsd ? 'USD 4.250,00' : '\$ 1.500.000,00',
+                              currencySymbol: targetAccount.currency.code == 'CUP' ? '\$' : 'USD',
+                              currencyColor: _isCupToUsd ? AppColors.wealth : AppColors.onSurface,
+                              accountName: 'Cuenta ${targetAccount.currency.code}',
+                              balance: (targetAccount.balance.minorUnits / 100).toStringAsFixed(2),
                             ),
                           ],
                         ),
-                        // Swap button
                         InkWell(
                           onTap: _swapCurrencies,
                           borderRadius: BorderRadius.circular(24),
@@ -128,7 +265,7 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Importe a convertir (${_isArsToUsd ? 'AR\$' : 'U\$D'})',
+                            'Importe a convertir (${sourceAccount.currency.code})',
                             style: Theme.of(context).textTheme.labelMedium?.copyWith(
                                   color: AppColors.onSurfaceVariant,
                                 ),
@@ -137,7 +274,7 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
                           Row(
                             children: [
                               Text(
-                                '\$',
+                                sourceAccount.currency.code == 'CUP' ? '\$' : 'USD',
                                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                                       color: AppColors.onSurface,
                                     ),
@@ -167,29 +304,53 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    // Exchange Rate
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
+                    // Rate Input
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Tipo de cambio (Venta)',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            'Tasa 1 USD =',
+                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
                                   color: AppColors.onSurfaceVariant,
                                 ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextField(
+                              controller: _rateController,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              textAlign: TextAlign.end,
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: AppColors.onSurface,
+                                  ),
+                              decoration: InputDecoration(
+                                hintText: '0.00',
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
+                                hintStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      color: AppColors.onSurfaceVariant.withValues(alpha: 0.5),
+                                    ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           Text(
-                            '1 USD = 1.050,00 ARS',
-                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                  color: AppColors.onSurface,
+                            'CUP',
+                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: AppColors.onSurfaceVariant,
                                 ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 16),
                     Divider(color: Colors.white.withValues(alpha: 0.05)),
                     const SizedBox(height: 8),
                     FittedBox(
@@ -205,7 +366,7 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
                           ),
                           const SizedBox(width: 16),
                           Text(
-                            _isArsToUsd ? 'USD 95,23' : 'ARS 105.000,00',
+                            '${targetAccount.currency.code == 'CUP' ? '\$' : 'USD'} ${receivedAmount.toStringAsFixed(2)}',
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                   color: AppColors.wealth,
                                 ),
@@ -215,7 +376,7 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
                     ),
                     const SizedBox(height: 32),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: _performConversion,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.wealth,
                         foregroundColor: Colors.black,
@@ -317,7 +478,6 @@ class _AccountSelector extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.expand_more, color: AppColors.onSurfaceVariant),
             ],
           ),
         ],

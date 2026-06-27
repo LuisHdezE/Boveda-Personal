@@ -9,6 +9,9 @@ allprojects {
 rootProject.layout.buildDirectory.value(rootProject.layout.projectDirectory.dir("../build"))
 
 subprojects {
+    val subprojectDir = rootProject.layout.buildDirectory.dir(project.name)
+    project.layout.buildDirectory.value(subprojectDir)
+    
     // Ensure all subprojects are evaluated after the app project, as plugins may depend on app configuration.
     if (project.path != ":app") {
         project.evaluationDependsOn(":app")
