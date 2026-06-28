@@ -3,6 +3,7 @@ import 'package:boveda_personal/features/settings/presentation/providers.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:boveda_personal/core/providers/core_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class UpdateUsdRateView extends ConsumerStatefulWidget {
@@ -101,18 +102,29 @@ class _UpdateUsdRateViewState extends ConsumerState<UpdateUsdRateView> {
                               ),
                         ),
                         const SizedBox(width: 12),
-                        Text(
-                          '850.50',
-                          style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                color: AppColors.onSurface,
-                              ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'CUP',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: AppColors.onSurfaceVariant,
-                              ),
+                        Consumer(
+                          builder: (context, ref, _) {
+                            final secCode = ref.watch(appSettingsProvider).value?.secondaryCurrencyCode ?? 'CUP';
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text(
+                                  '850.50',
+                                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                                        color: AppColors.onSurface,
+                                      ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  secCode,
+                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                        color: AppColors.onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -159,12 +171,17 @@ class _UpdateUsdRateViewState extends ConsumerState<UpdateUsdRateView> {
           ),
           const SizedBox(height: 32),
           // Input Section
-          Text(
-            'NUEVA TASA (CUP)',
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                  letterSpacing: 1.5,
-                ),
+          Consumer(
+            builder: (context, ref, _) {
+              final secCode = ref.watch(appSettingsProvider).value?.secondaryCurrencyCode ?? 'CUP';
+              return Text(
+                'NUEVA TASA ($secCode)',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: AppColors.onSurfaceVariant,
+                      letterSpacing: 1.5,
+                    ),
+              );
+            },
           ),
           const SizedBox(height: 8),
           Container(
@@ -191,12 +208,17 @@ class _UpdateUsdRateViewState extends ConsumerState<UpdateUsdRateView> {
                       ),
                     ),
                     prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-                    suffixIcon: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'CUP',
-                        style: TextStyle(fontSize: 22, color: AppColors.onSurfaceVariant),
-                      ),
+                    suffixIcon: Consumer(
+                      builder: (context, ref, _) {
+                        final secCode = ref.watch(appSettingsProvider).value?.secondaryCurrencyCode ?? 'CUP';
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            secCode,
+                            style: const TextStyle(fontSize: 22, color: AppColors.onSurfaceVariant),
+                          ),
+                        );
+                      }
                     ),
                     suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
                     hintText: '850.50',
@@ -225,8 +247,9 @@ class _UpdateUsdRateViewState extends ConsumerState<UpdateUsdRateView> {
             onPressed: state.isLoading
                 ? null
                 : () {
+                    final secCode = ref.read(appSettingsProvider).value?.secondaryCurrencyCode ?? 'CUP';
                     ref.read(updateRateNotifierProvider.notifier).save(
-                          baseCurrency: 'CUP',
+                          baseCurrency: secCode,
                           quoteCurrency: 'USD',
                           rateText: _rateController.text,
                         );

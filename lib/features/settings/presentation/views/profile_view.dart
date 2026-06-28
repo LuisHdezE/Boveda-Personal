@@ -1,6 +1,8 @@
 import 'package:boveda_personal/app/theme/app_colors.dart';
+import 'package:boveda_personal/core/domain/value_objects/page.dart';
 import 'package:boveda_personal/core/providers/core_providers.dart';
 import 'package:boveda_personal/features/auth/presentation/providers.dart';
+import 'package:boveda_personal/features/movements/domain/queries/movement_filter.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -165,20 +167,6 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                 ),
                           ),
                         ],
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.email, size: 16, color: AppColors.onSurfaceVariant),
-                            const SizedBox(width: 8),
-                            Text(
-                              'usuario@bovedapersonal.com',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.onSurfaceVariant,
-                                  ),
-                            ),
-                          ],
-                        ),
                         const SizedBox(height: 24),
                         if (_isEditing) ...[
                           Row(
@@ -237,148 +225,133 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           ),
           const SizedBox(height: 40),
           // Quick Stats Bento Grid
-          Row(
-            children: [
-              Expanded(
-                child: GlassCard(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.calendar_today, size: 18, color: AppColors.onSurfaceVariant),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Meses Activo',
-                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  color: AppColors.onSurfaceVariant,
-                                ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          Text(
-                            '34',
-                            style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                                  color: AppColors.wealth,
-                                  height: 1,
-                                ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            'meses',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.onSurfaceVariant,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: GlassCard(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.sync_alt, size: 18, color: AppColors.onSurfaceVariant),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Movimientos',
-                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  color: AppColors.onSurfaceVariant,
-                                ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          Text(
-                            '1.2k',
-                            style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                                  color: AppColors.onSurface,
-                                  height: 1,
-                                ),
-                          ),
-                          const Spacer(),
-                          const Icon(Icons.trending_up, color: AppColors.tertiary, size: 24),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Security Level
-          GlassCard(
+          _ProfileStatsRow(),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileStatsRow extends ConsumerWidget {
+  _ProfileStatsRow({super.key});
+
+  final _movementCountProvider = FutureProvider.autoDispose<int>((ref) async {
+    final all = await ref.watch(movementRepositoryProvider).list(
+      MovementFilter(),
+      PageRequest(limit: 100000, offset: 0),
+    );
+    return all.length;
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(profileUserProvider);
+    final movementsAsync = ref.watch(_movementCountProvider);
+
+    int monthsActive = 0;
+    userAsync.whenData((u) {
+      if (u != null) {
+        final createdAtMs = u['created_at'] as int?;
+        if (createdAtMs != null) {
+          final createdAt = DateTime.fromMillisecondsSinceEpoch(createdAtMs);
+          final now = DateTime.now();
+          monthsActive = ((now.year - createdAt.year) * 12) + (now.month - createdAt.month);
+          if (monthsActive < 1) monthsActive = 1;
+        }
+      }
+    });
+
+    final movementCount = movementsAsync.asData?.value ?? 0;
+    final movementLabel = movementCount >= 1000
+        ? '${(movementCount / 1000).toStringAsFixed(1)}k'
+        : '$movementCount';
+
+    return Row(
+      children: [
+        Expanded(
+          child: GlassCard(
             padding: const EdgeInsets.all(16),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceHigh,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                  ),
-                  child: const Icon(Icons.verified_user, color: AppColors.wealth, size: 20),
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today, size: 18, color: AppColors.onSurfaceVariant),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Meses Activo',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Nivel de Seguridad',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: AppColors.onSurface,
-                            ),
-                      ),
-                      Text(
-                        'Biometría activada',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.onSurfaceVariant,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.tertiary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.tertiary.withValues(alpha: 0.2)),
-                  ),
-                  child: Text(
-                    'Máxima',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: AppColors.tertiary,
-                        ),
-                  ),
+                const SizedBox(height: 24),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      '$monthsActive',
+                      style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                            color: AppColors.wealth,
+                            height: 1,
+                          ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      'meses',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 40),
-        ],
-      ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: GlassCard(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.sync_alt, size: 18, color: AppColors.onSurfaceVariant),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Movimientos',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      movementsAsync.isLoading ? '...' : movementLabel,
+                      style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                            color: AppColors.onSurface,
+                            height: 1,
+                          ),
+                    ),
+                    const Spacer(),
+                    const Icon(Icons.trending_up, color: AppColors.tertiary, size: 24),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

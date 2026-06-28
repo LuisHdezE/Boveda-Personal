@@ -1,4 +1,5 @@
 import 'package:boveda_personal/app/theme/app_colors.dart';
+import 'package:boveda_personal/features/reports/presentation/providers/annual_report_provider.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -29,11 +30,13 @@ class AnnualReportView extends ConsumerWidget {
   }
 }
 
-class _PeriodSelector extends StatelessWidget {
+class _PeriodSelector extends ConsumerWidget {
   const _PeriodSelector();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentYear = ref.watch(currentYearStartProvider);
+
     return GlassCard(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -41,7 +44,11 @@ class _PeriodSelector extends StatelessWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.chevron_left, color: AppColors.onSurfaceVariant),
-            onPressed: () {},
+            onPressed: () {
+              ref.read(currentYearStartProvider.notifier).setYear(
+                DateTime(currentYear.year - 1, 1, 1)
+              );
+            },
           ),
           Column(
             children: [
@@ -53,7 +60,7 @@ class _PeriodSelector extends StatelessWidget {
                     ),
               ),
               Text(
-                '2023',
+                '${currentYear.year}',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: AppColors.onSurface,
                       fontWeight: FontWeight.w600,
@@ -63,7 +70,11 @@ class _PeriodSelector extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
-            onPressed: () {},
+            onPressed: () {
+              ref.read(currentYearStartProvider.notifier).setYear(
+                DateTime(currentYear.year + 1, 1, 1)
+              );
+            },
           ),
         ],
       ),
@@ -71,11 +82,13 @@ class _PeriodSelector extends StatelessWidget {
   }
 }
 
-class _AnnualSummary extends StatelessWidget {
+class _AnnualSummary extends ConsumerWidget {
   const _AnnualSummary();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reportAsync = ref.watch(annualReportProvider);
+
     return GlassCard(
       padding: const EdgeInsets.all(24),
       child: Stack(
@@ -96,58 +109,59 @@ class _AnnualSummary extends StatelessWidget {
               ],
             ),
           ),
-          Column(
-            children: [
-              Text(
-                'Patrimonio Final Anual',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: AppColors.onSurfaceVariant,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    '\$142,500',
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          color: AppColors.wealth,
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                  Text(
-                    '.00',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: AppColors.wealth.withValues(alpha: 0.6),
-                        ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.income.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.income.withValues(alpha: 0.2)),
+          reportAsync.when(
+            data: (report) => Column(
+              children: [
+                Text(
+                  'Ahorro Neto Anual',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppColors.onSurfaceVariant,
+                      ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.trending_up, color: AppColors.income, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      '+18.4% vs 2022',
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: AppColors.income,
-                          ),
-                    ),
-                  ],
+                const SizedBox(height: 8),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        '\$${report.netSavings.toStringAsFixed(2)}',
+                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                              color: AppColors.wealth,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.income.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.income.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.savings, color: AppColors.income, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Total Acumulado',
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: AppColors.income,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) => const SizedBox(),
           ),
         ],
       ),
@@ -155,11 +169,13 @@ class _AnnualSummary extends StatelessWidget {
   }
 }
 
-class _AnnualChart extends StatelessWidget {
+class _AnnualChart extends ConsumerWidget {
   const _AnnualChart();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reportAsync = ref.watch(annualReportProvider);
+
     return GlassCard(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -184,26 +200,39 @@ class _AnnualChart extends StatelessWidget {
               _LegendItem(color: AppColors.income, label: 'Ingresos'),
               const SizedBox(width: 16),
               _LegendItem(color: AppColors.expense, label: 'Gastos'),
-              const SizedBox(width: 16),
-              _LegendItem(color: AppColors.wealth, label: 'Ahorro'),
             ],
           ),
           const SizedBox(height: 24),
           // Chart placeholder
-          SizedBox(
-            height: 160,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                _ChartColumn(label: 'E', inc: 60, exp: 40, sav: 20),
-                _ChartColumn(label: 'F', inc: 65, exp: 45, sav: 20),
-                _ChartColumn(label: 'M', inc: 70, exp: 35, sav: 35),
-                _ChartColumn(label: 'A', inc: 60, exp: 50, sav: 10),
-                _ChartColumn(label: 'M', inc: 80, exp: 40, sav: 40),
-                _ChartColumn(label: 'J', inc: 65, exp: 45, sav: 20),
-              ],
-            ),
+          reportAsync.when(
+            data: (report) {
+              final maxVal = [
+                ...report.incomePerMonth,
+                ...report.expensePerMonth,
+              ].reduce((a, b) => a > b ? a : b);
+              
+              final scale = maxVal > 0 ? 100 / maxVal : 1.0;
+
+              return SizedBox(
+                height: 160,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: List.generate(6, (i) {
+                    final monthIndex = i * 2; // Show every other month to fit, or just first 6 for now (E, M, M, J, S, N)
+                    final label = ['E', 'M', 'M', 'J', 'S', 'N'][i];
+                    return _ChartColumn(
+                      label: label,
+                      inc: report.incomePerMonth[monthIndex] * scale,
+                      exp: report.expensePerMonth[monthIndex] * scale,
+                      sav: 0,
+                    );
+                  }),
+                ),
+              );
+            },
+            loading: () => const SizedBox(height: 160, child: Center(child: CircularProgressIndicator())),
+            error: (_, __) => const SizedBox(height: 160),
           ),
         ],
       ),
@@ -309,11 +338,13 @@ class _Bar extends StatelessWidget {
   }
 }
 
-class _MilestonesGrid extends StatelessWidget {
+class _MilestonesGrid extends ConsumerWidget {
   const _MilestonesGrid();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reportAsync = ref.watch(annualReportProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -324,84 +355,107 @@ class _MilestonesGrid extends StatelessWidget {
               ),
         ),
         const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _MilestoneCard(
-                icon: Icons.emoji_events,
-                iconColor: AppColors.wealth,
-                title: 'Mayor Ahorro',
-                value: 'Mayo',
-                subtitle: '\$4,200',
-                subtitleColor: AppColors.wealth,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _MilestoneCard(
-                icon: Icons.home,
-                iconColor: AppColors.expense,
-                title: 'Gasto Dominante',
-                value: 'Vivienda',
-                subtitle: '35% del total',
-                subtitleColor: AppColors.expense,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        GlassCard(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.income.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.show_chart, color: AppColors.income),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        reportAsync.when(
+          data: (report) {
+            final monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            
+            // Find max savings month
+            double maxSavings = 0;
+            int maxSavingsIndex = 0;
+            for (int i = 0; i < 12; i++) {
+              final savings = report.incomePerMonth[i] - report.expensePerMonth[i];
+              if (savings > maxSavings) {
+                maxSavings = savings;
+                maxSavingsIndex = i;
+              }
+            }
+
+            // Find max expense month
+            double maxExpense = 0;
+            int maxExpenseIndex = 0;
+            for (int i = 0; i < 12; i++) {
+              if (report.expensePerMonth[i] > maxExpense) {
+                maxExpense = report.expensePerMonth[i];
+                maxExpenseIndex = i;
+              }
+            }
+            
+            final dominantExpensePct = report.totalExpense > 0 
+                ? (maxExpense / report.totalExpense * 100).toStringAsFixed(0) 
+                : '0';
+
+            return Column(
+              children: [
+                Row(
                   children: [
-                    Text(
-                      'Ingreso Anual',
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: AppColors.onSurfaceVariant,
-                          ),
+                    Expanded(
+                      child: _MilestoneCard(
+                        icon: Icons.emoji_events,
+                        iconColor: AppColors.wealth,
+                        title: 'Mayor Ahorro',
+                        value: monthNames[maxSavingsIndex],
+                        subtitle: '\$${maxSavings.toStringAsFixed(2)}',
+                        subtitleColor: AppColors.wealth,
+                      ),
                     ),
-                    Text(
-                      '\$85,000',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: AppColors.onSurface,
-                          ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _MilestoneCard(
+                        icon: Icons.money_off,
+                        iconColor: AppColors.expense,
+                        title: 'Gasto Dominante',
+                        value: monthNames[maxExpenseIndex],
+                        subtitle: '$dominantExpensePct% del total',
+                        subtitleColor: AppColors.expense,
+                      ),
                     ),
                   ],
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '+12.5%',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: AppColors.income,
+                const SizedBox(height: 16),
+                GlassCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.income.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
                         ),
-                  ),
-                  Text(
-                    'vs 2022',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: AppColors.onSurfaceVariant,
+                        child: const Icon(Icons.show_chart, color: AppColors.income),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Ingreso Anual',
+                              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                    color: AppColors.onSurfaceVariant,
+                                  ),
+                            ),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                '\$${report.totalIncome.toStringAsFixed(2)}',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      color: AppColors.onSurface,
+                                    ),
+                              ),
+                            ),
+                          ],
                         ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => const SizedBox(),
         ),
       ],
     );

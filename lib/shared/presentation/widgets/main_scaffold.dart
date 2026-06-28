@@ -12,6 +12,7 @@ class MainScaffold extends StatelessWidget {
     this.title = 'Bóveda Personal',
     this.showBackButton = false,
     this.floatingActionButton,
+    this.actions,
   });
 
   final Widget child;
@@ -19,6 +20,7 @@ class MainScaffold extends StatelessWidget {
   final String title;
   final bool showBackButton;
   final Widget? floatingActionButton;
+  final List<Widget>? actions;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +53,7 @@ class MainScaffold extends StatelessWidget {
                 icon: const Icon(Icons.menu, color: AppColors.onSurfaceVariant),
                 onPressed: () => context.push(AppRoutes.settings),
               ),
-        actions: [
+        actions: actions ?? [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: GestureDetector(

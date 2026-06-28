@@ -3,6 +3,7 @@ import 'package:boveda_personal/core/database/dao/account_dao.dart';
 import 'package:boveda_personal/core/database/dao/exchange_rate_dao.dart';
 import 'package:boveda_personal/core/database/dao/movement_dao.dart';
 import 'package:boveda_personal/core/database/dao/user_settings_dao.dart';
+import 'package:boveda_personal/core/database/dao/transfer_dao.dart';
 import 'package:boveda_personal/core/infrastructure/uuid_id_generator.dart';
 import 'package:boveda_personal/core/ports/id_generator.dart';
 import 'package:boveda_personal/core/ports/password_hasher.dart';
@@ -13,6 +14,8 @@ import 'package:boveda_personal/features/auth/data/sqlite_auth_repository.dart';
 import 'package:boveda_personal/features/auth/domain/repositories/auth_repository.dart';
 import 'package:boveda_personal/features/movements/data/sqlite_movement_repository.dart';
 import 'package:boveda_personal/features/movements/domain/repositories/movement_repository.dart';
+import 'package:boveda_personal/features/movements/domain/repositories/transfer_repository.dart';
+import 'package:boveda_personal/features/movements/data/sqlite_transfer_repository.dart';
 import 'package:boveda_personal/features/onboarding/data/sqlite_onboarding_repository.dart';
 import 'package:boveda_personal/features/onboarding/domain/repositories/onboarding_repository.dart';
 import 'package:boveda_personal/features/rates/data/sqlite_exchange_rate_repository.dart';
@@ -73,6 +76,10 @@ final subscriptionDaoProvider = Provider<SubscriptionDao>((ref) {
   return SubscriptionDao(ref.watch(bovedaDatabaseProvider));
 });
 
+final transferDaoProvider = Provider<TransferDao>((ref) {
+  return TransferDao(ref.watch(bovedaDatabaseProvider));
+});
+
 // ── Repositorios ──────────────────────────────────────────────────────────
 
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
@@ -82,6 +89,7 @@ final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return SqliteAuthRepository(ref.watch(userSettingsDaoProvider));
 });
+
 
 final onboardingRepositoryProvider = Provider<OnboardingRepository>((ref) {
   return SqliteOnboardingRepository(
@@ -114,6 +122,10 @@ final debtRepositoryProvider = Provider<DebtRepository>((ref) {
 
 final subscriptionRepositoryProvider = Provider<SubscriptionRepository>((ref) {
   return SqliteSubscriptionRepository(ref.watch(subscriptionDaoProvider));
+});
+
+final transferRepositoryProvider = Provider<TransferRepository>((ref) {
+  return SqliteTransferRepository(ref.watch(transferDaoProvider));
 });
 
 // ── Settings globales ─────────────────────────────────────────────────────

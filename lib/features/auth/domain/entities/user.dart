@@ -5,6 +5,7 @@ class User {
     required this.username,
     required this.passwordHash,
     required this.passwordSalt,
+
     required this.createdAt,
     required this.updatedAt,
   });
@@ -14,6 +15,7 @@ class User {
   final String username;
   final String passwordHash;
   final String passwordSalt;
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -22,6 +24,7 @@ class User {
     String? username,
     String? passwordHash,
     String? passwordSalt,
+
     DateTime? updatedAt,
   }) {
     return User(
@@ -30,6 +33,7 @@ class User {
       username: username ?? this.username,
       passwordHash: passwordHash ?? this.passwordHash,
       passwordSalt: passwordSalt ?? this.passwordSalt,
+
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -43,6 +47,7 @@ class User {
         other.username == username &&
         other.passwordHash == passwordHash &&
         other.passwordSalt == passwordSalt &&
+
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt;
   }
@@ -54,6 +59,7 @@ class User {
     username,
     passwordHash,
     passwordSalt,
+
     createdAt,
     updatedAt,
   );

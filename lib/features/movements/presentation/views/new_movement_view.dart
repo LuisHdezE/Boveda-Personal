@@ -26,6 +26,7 @@ class _NewMovementViewState extends ConsumerState<NewMovementView> {
   bool _isExpense = true;
   bool _isUsd = false; // Add state to toggle currency
   Category? _selectedCategory;
+  DateTime _selectedDate = DateTime.now();
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
 
@@ -38,9 +39,7 @@ class _NewMovementViewState extends ConsumerState<NewMovementView> {
       _isUsd = initial.amount.currency.code == 'USD';
       _amountController.text = (initial.amount.minorUnits / 100).toString();
       _noteController.text = initial.note ?? '';
-      // We don't have the category object loaded right away, but we can set the ID in another way
-      // or we can wait for categories to load if we need it. 
-      // For now, _selectedCategory might be tricky because we only have categoryId.
+      _selectedDate = initial.occurredAt;
     }
   }
 
@@ -58,25 +57,45 @@ class _NewMovementViewState extends ConsumerState<NewMovementView> {
     final balances = ref.read(accountBalancesProvider).value;
     if (balances == null || balances.isEmpty) return;
 
-    final currencyCode = _isUsd ? 'USD' : 'CUP';
+    final secCode = ref.read(appSettingsProvider).value?.secondaryCurrencyCode ?? 'CUP';
     final account = balances.firstWhere(
-      (b) => b.currency.code == currencyCode,
-      orElse: () => balances.first,
+      (b) => _isUsd ? b.currency.code == 'USD' : b.currency.code != 'USD',
+      orElse: () => balances.last,
     );
 
     final amountMinor = (double.parse(amountText) * 100).toInt();
-    final now = DateTime.now();
+
+    if (_isExpense) {
+      int availableBalance = account.balance.minorUnits;
+      if (widget.initialMovement != null && widget.initialMovement!.amount.currency.code == account.currency.code) {
+        if (widget.initialMovement!.type == MovementType.expense) {
+          availableBalance += widget.initialMovement!.amount.minorUnits;
+        } else if (widget.initialMovement!.type == MovementType.income) {
+          availableBalance -= widget.initialMovement!.amount.minorUnits;
+        }
+      }
+
+      if (amountMinor > availableBalance) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Saldo insuficiente para realizar esta operación')),
+        );
+        return;
+      }
+    }
 
     final movement = Movement(
       id: widget.initialMovement?.id ?? ref.read(idGeneratorProvider).next(),
       accountId: account.accountId,
       categoryId: _selectedCategory?.id ?? widget.initialMovement?.categoryId,
       type: _isExpense ? MovementType.expense : MovementType.income,
-      amount: Money(minorUnits: amountMinor, currency: account.currency),
-      occurredAt: widget.initialMovement?.occurredAt ?? now,
-      note: _noteController.text.isEmpty ? null : _noteController.text,
-      createdAt: widget.initialMovement?.createdAt ?? now,
-      updatedAt: now,
+      amount: Money(
+        minorUnits: amountMinor,
+        currency: account.currency,
+      ),
+      occurredAt: _selectedDate,
+      note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+      createdAt: widget.initialMovement?.createdAt ?? DateTime.now(),
+      updatedAt: DateTime.now(),
     );
 
     bool success;
@@ -91,18 +110,31 @@ class _NewMovementViewState extends ConsumerState<NewMovementView> {
       ref.invalidate(recentMovementsProvider);
       ref.invalidate(dashboardSummaryProvider);
       ref.invalidate(accountBalancesProvider);
+      ref.invalidate(movementsProvider);
+      ref.invalidate(wealthEvolutionProvider);
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(widget.initialMovement != null ? 'Movimiento actualizado' : 'Movimiento registrado con éxito')),
       );
-      context.pop();
+
+      if (widget.initialMovement != null) {
+        context.pop();
+      } else {
+        setState(() {
+          _amountController.clear();
+          _noteController.clear();
+          _selectedCategory = null;
+          _selectedDate = DateTime.now();
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final secCode = ref.watch(appSettingsProvider).value?.secondaryCurrencyCode ?? 'CUP';
     return MainScaffold(
-      title: widget.initialMovement != null ? 'Editar Movimiento' : 'Nuevo Movimiento',
+      title: widget.initialMovement == null ? 'Nuevo Movimiento' : 'Editar Movimiento',
       showBackButton: true,
       showBottomNav: false, // The HTML has the nav bar but the bottom is obscured by the save button.
       child: Stack(
@@ -147,18 +179,70 @@ class _NewMovementViewState extends ConsumerState<NewMovementView> {
                 },
               ),
               const SizedBox(height: 32),
-              const SizedBox(height: 32),
               _AmountInput(
                 controller: _amountController,
                 isExpense: _isExpense,
-                currencyCode: _isUsd ? 'USD' : 'CUP',
+                currencyCode: _isUsd ? 'USD' : secCode,
                 onCurrencyToggle: () => setState(() => _isUsd = !_isUsd),
               ),
               const SizedBox(height: 32),
               _FormDetails(
                 noteController: _noteController,
                 selectedCategory: _selectedCategory,
+                initialCategoryId: widget.initialMovement?.categoryId,
+                selectedDate: _selectedDate,
                 onSelectCategory: () => _showCategoryPicker(context),
+                onSelectDate: () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedDate,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: const ColorScheme.dark(
+                            primary: AppColors.wealth,
+                            onPrimary: Colors.black,
+                            surface: AppColors.surface,
+                            onSurface: AppColors.onSurface,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    }
+                  );
+                  if (date != null && mounted) {
+                    final time = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(_selectedDate),
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: const ColorScheme.dark(
+                              primary: AppColors.wealth,
+                              onPrimary: Colors.black,
+                              surface: AppColors.surface,
+                              onSurface: AppColors.onSurface,
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      }
+                    );
+                    if (time != null && mounted) {
+                      setState(() {
+                        _selectedDate = DateTime(
+                          date.year,
+                          date.month,
+                          date.day,
+                          time.hour,
+                          time.minute,
+                        );
+                      });
+                    }
+                  }
+                },
               ),
               const SizedBox(height: 120), // Padding for button
             ],
@@ -391,34 +475,58 @@ class _AmountInput extends StatelessWidget {
   }
 }
 
-class _FormDetails extends StatelessWidget {
+class _FormDetails extends ConsumerWidget {
   const _FormDetails({
     required this.noteController,
     required this.selectedCategory,
+    this.initialCategoryId,
+    required this.selectedDate,
     required this.onSelectCategory,
+    required this.onSelectDate,
   });
 
   final TextEditingController noteController;
   final Category? selectedCategory;
+  final String? initialCategoryId;
+  final DateTime selectedDate;
   final VoidCallback onSelectCategory;
+  final VoidCallback onSelectDate;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Simple format for the date
+    final months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    final dateStr = '${selectedDate.day} ${months[selectedDate.month - 1]} ${selectedDate.year}, ${selectedDate.hour.toString().padLeft(2, '0')}:${selectedDate.minute.toString().padLeft(2, '0')}';
+
+    String categoryName = 'Seleccionar...';
+    if (selectedCategory != null) {
+      categoryName = selectedCategory!.name;
+    } else if (initialCategoryId != null) {
+      final categoriesAsync = ref.watch(categoriesProvider(null));
+      categoryName = categoriesAsync.maybeWhen(
+        data: (cats) {
+          final cat = cats.where((c) => c.id == initialCategoryId).firstOrNull;
+          return cat?.name ?? 'Seleccionar...';
+        },
+        orElse: () => 'Cargando...',
+      );
+    }
+
     return Column(
       children: [
         _FormRow(
           icon: Icons.category,
           label: 'Categoría',
-          value: selectedCategory?.name ?? 'Seleccionar...',
+          value: categoryName,
           onTap: onSelectCategory,
         ),
         const SizedBox(height: 12),
         _FormRow(
           icon: Icons.calendar_today,
           label: 'Fecha',
-          value: 'Hoy, 24 Oct',
+          value: dateStr,
           actionIcon: Icons.edit,
-          onTap: () {},
+          onTap: onSelectDate,
         ),
         const SizedBox(height: 12),
         GlassCard(

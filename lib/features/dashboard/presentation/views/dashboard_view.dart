@@ -7,8 +7,10 @@ import 'package:boveda_personal/features/settings/presentation/providers/calcula
 import 'package:boveda_personal/shared/presentation/widgets/expandable_fab.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
+import 'package:boveda_personal/core/utils/currency_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
 
 class DashboardView extends ConsumerWidget {
@@ -78,13 +80,12 @@ class _BalanceCard extends ConsumerStatefulWidget {
 }
 
 class _BalanceCardState extends ConsumerState<_BalanceCard> {
-  bool _showInSecondary = false;
-
   @override
   Widget build(BuildContext context) {
     final balancesAsync = ref.watch(accountBalancesProvider);
     final settingsAsync = ref.watch(appSettingsProvider);
     final currenciesAsync = ref.watch(calculatorCurrenciesProvider);
+    final _showInSecondary = ref.watch(showInSecondaryProvider);
 
     return GlassCard(
       child: Stack(
@@ -120,9 +121,7 @@ class _BalanceCardState extends ConsumerState<_BalanceCard> {
                     ),
                     InkWell(
                       onTap: () {
-                        setState(() {
-                          _showInSecondary = !_showInSecondary;
-                        });
+                        ref.read(showInSecondaryProvider.notifier).toggle();
                       },
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
@@ -176,7 +175,7 @@ class _BalanceCardState extends ConsumerState<_BalanceCard> {
                   double displayAmount = totalUsd;
 
                   if (_showInSecondary) {
-                    displayCode = settings.primaryCurrencyCode;
+                    displayCode = settings.secondaryCurrencyCode ?? 'CUP';
                     final targetCurrInfo = currencies.firstWhere(
                       (c) => c.currency.code == displayCode,
                       orElse: () => currencies.first,
@@ -184,42 +183,21 @@ class _BalanceCardState extends ConsumerState<_BalanceCard> {
                     displayAmount = totalUsd * targetCurrInfo.unitsPerUsd.toDouble();
                   }
 
-                  final amountParts = displayAmount.toStringAsFixed(2).split('.');
-                  final integerPart = amountParts[0].replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
-                  final decimalPart = amountParts.length > 1 ? amountParts[1] : '00';
+                  final formattedBalance = CurrencyFormatter.formatAmountNeutral(displayAmount, currencyCode: displayCode);
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          Text(
-                            '$displayCode ',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  color: AppColors.wealth.withValues(alpha: 0.7),
-                                ),
-                          ),
-                          Text(
-                            '\$',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  color: AppColors.wealth.withValues(alpha: 0.7),
-                                ),
-                          ),
-                          Text(
-                            integerPart,
-                            style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                                  color: AppColors.wealth,
-                                ),
-                          ),
-                          Text(
-                            '.$decimalPart',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: AppColors.wealth.withValues(alpha: 0.7),
-                                ),
-                          ),
-                        ],
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          formattedBalance,
+                          style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                                color: AppColors.wealth,
+                              ),
+                          maxLines: 1,
+                        ),
                       ),
                     ],
                   );
@@ -230,16 +208,19 @@ class _BalanceCardState extends ConsumerState<_BalanceCard> {
                     if (balances.isEmpty) {
                       return Text('No hay cuentas configuradas.', style: Theme.of(context).textTheme.bodyMedium);
                     }
-                    return Row(
-                      children: balances.map((b) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 16),
-                          child: _CurrencyBalance(
-                            currency: b.currency.code,
-                            amount: '\$${(b.balance.minorUnits / 100).toStringAsFixed(2)}',
-                          ),
-                        );
-                      }).toList(),
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: balances.map((b) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 16),
+                            child: _CurrencyBalance(
+                              currency: b.currency.code,
+                              amount: '\$${(b.balance.minorUnits / 100).toStringAsFixed(2)}',
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     );
                   },
                   loading: () => const SizedBox.shrink(),
@@ -291,13 +272,14 @@ class _SummaryRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final summaryAsync = ref.watch(dashboardSummaryProvider);
+    final showInSecondary = ref.watch(showInSecondaryProvider);
+    final settings = ref.watch(appSettingsProvider).value;
     
     return summaryAsync.when(
       data: (summary) {
         final incomeAmount = summary.income / 100;
         final expenseAmount = summary.expense / 100;
         final savingsAmount = incomeAmount - expenseAmount;
-        
         return Row(
           children: [
             Expanded(
@@ -305,7 +287,7 @@ class _SummaryRow extends ConsumerWidget {
                 icon: Icons.arrow_upward,
                 iconColor: AppColors.income,
                 title: 'Ingresos',
-                amount: '+\$${incomeAmount.toStringAsFixed(2)}',
+                amount: CurrencyFormatter.formatAmount(incomeAmount, currencyCode: showInSecondary ? settings?.secondaryCurrencyCode : 'USD'),
                 amountColor: AppColors.income,
                 onTap: () {},
               ),
@@ -316,7 +298,7 @@ class _SummaryRow extends ConsumerWidget {
                 icon: Icons.arrow_downward,
                 iconColor: AppColors.expense,
                 title: 'Gastos',
-                amount: '-\$${expenseAmount.toStringAsFixed(2)}',
+                amount: CurrencyFormatter.formatAmount(-expenseAmount, currencyCode: showInSecondary ? settings?.secondaryCurrencyCode : 'USD'),
                 amountColor: AppColors.expense,
                 onTap: () {},
               ),
@@ -327,7 +309,7 @@ class _SummaryRow extends ConsumerWidget {
                 icon: Icons.savings,
                 iconColor: AppColors.onSurface,
                 title: 'Ahorro',
-                amount: '\$${savingsAmount.toStringAsFixed(2)}',
+                amount: CurrencyFormatter.formatAmountNeutral(savingsAmount, currencyCode: showInSecondary ? settings?.secondaryCurrencyCode : 'USD'),
                 amountColor: AppColors.onSurface,
                 onTap: () {},
               ),
@@ -387,11 +369,15 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-class _ChartSection extends StatelessWidget {
+class _ChartSection extends ConsumerWidget {
   const _ChartSection();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final wealthAsync = ref.watch(wealthEvolutionProvider);
+    final showInSecondary = ref.watch(showInSecondaryProvider);
+    final settingsAsync = ref.watch(appSettingsProvider);
+
     return GlassCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -402,10 +388,14 @@ class _ChartSection extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Evolución del Patrimonio',
-                  style: Theme.of(context).textTheme.titleLarge,
+                Expanded(
+                  child: Text(
+                    'Evolución del Patrimonio',
+                    style: Theme.of(context).textTheme.titleLarge,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -413,7 +403,7 @@ class _ChartSection extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    '1M',
+                    '30 Días',
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
                           color: AppColors.onSurfaceVariant,
                         ),
@@ -426,6 +416,7 @@ class _ChartSection extends StatelessWidget {
           Container(
             height: 160,
             width: double.infinity,
+            padding: const EdgeInsets.only(right: 20, left: 10, top: 20, bottom: 10),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -436,56 +427,128 @@ class _ChartSection extends StatelessWidget {
                 ],
               ),
             ),
-            child: CustomPaint(
-              painter: _MockChartPainter(),
+            child: wealthAsync.when(
+              data: (points) {
+                if (points.isEmpty) return const SizedBox.shrink();
+
+                final spots = points.asMap().entries.map((e) {
+                  return FlSpot(e.key.toDouble(), e.value.balance);
+                }).toList();
+                
+                double minY = points.map((p) => p.balance).reduce((a, b) => a < b ? a : b);
+                double maxY = points.map((p) => p.balance).reduce((a, b) => a > b ? a : b);
+                if (minY == maxY) {
+                   minY -= 100;
+                   maxY += 100;
+                }
+                final diff = maxY - minY;
+                minY -= diff * 0.2;
+                maxY += diff * 0.2;
+
+                return LineChart(
+                  LineChartData(
+                    gridData: const FlGridData(show: false),
+                    titlesData: FlTitlesData(
+                      show: true,
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 22,
+                          interval: 7,
+                          getTitlesWidget: (value, meta) {
+                            if (value == meta.min || value == meta.max || value.toInt() >= points.length) {
+                              return const SizedBox.shrink();
+                            }
+                            final date = points[value.toInt()].date;
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                '${date.day} ${_getShortMonth(date.month)}',
+                                style: const TextStyle(
+                                  color: AppColors.onSurfaceVariant,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 50,
+                          getTitlesWidget: (value, meta) {
+                            if (value == meta.min || value == meta.max) {
+                              return const SizedBox.shrink();
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: Text(
+                                CurrencyFormatter.formatAmountNeutral(
+                                  value,
+                                  currencyCode: showInSecondary ? settingsAsync.value?.secondaryCurrencyCode : 'USD',
+                                ),
+                                style: const TextStyle(
+                                  color: AppColors.onSurfaceVariant,
+                                  fontSize: 10,
+                                ),
+                                textAlign: TextAlign.right,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    minX: 0,
+                    maxX: 29,
+                    minY: minY,
+                    maxY: maxY,
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: spots,
+                        isCurved: true,
+                        color: AppColors.wealth,
+                        barWidth: 2,
+                        isStrokeCapRound: true,
+                        dotData: const FlDotData(show: false),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          color: AppColors.wealth.withValues(alpha: 0.1),
+                        ),
+                      ),
+                    ],
+                    lineTouchData: LineTouchData(
+                      touchTooltipData: LineTouchTooltipData(
+                        getTooltipColor: (_) => AppColors.surfaceHigh,
+                        getTooltipItems: (touchedSpots) {
+                          return touchedSpots.map((spot) {
+                            final date = points[spot.x.toInt()].date;
+                            final val = CurrencyFormatter.formatAmountNeutral(
+                              spot.y, 
+                              currencyCode: showInSecondary ? settingsAsync.value?.secondaryCurrencyCode : 'USD'
+                            );
+                            return LineTooltipItem(
+                              '${date.day}/${date.month}\n$val',
+                              const TextStyle(color: AppColors.onSurface, fontSize: 12),
+                            );
+                          }).toList();
+                        },
+                      ),
+                    ),
+                  ),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, st) => Center(child: Text('Error: $e')),
             ),
           ),
         ],
       ),
     );
   }
-}
-
-class _MockChartPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.wealth
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-
-    final path = Path();
-    path.moveTo(0, size.height * 0.6);
-    path.cubicTo(
-      size.width * 0.2, size.height * 0.5,
-      size.width * 0.3, size.height * 0.7,
-      size.width * 0.5, size.height * 0.4,
-    );
-    path.cubicTo(
-      size.width * 0.7, size.height * 0.1,
-      size.width * 0.8, size.height * 0.3,
-      size.width, size.height * 0.2,
-    );
-
-    canvas.drawPath(path, paint);
-
-    final dotPaint = Paint()
-      ..color = AppColors.background
-      ..style = PaintingStyle.fill;
-    final dotStroke = Paint()
-      ..color = AppColors.wealth
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawCircle(Offset(size.width * 0.5, size.height * 0.4), 4, dotPaint);
-    canvas.drawCircle(Offset(size.width * 0.5, size.height * 0.4), 4, dotStroke);
-
-    canvas.drawCircle(Offset(size.width, size.height * 0.2), 4, dotPaint);
-    canvas.drawCircle(Offset(size.width, size.height * 0.2), 4, dotStroke);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _RecentMovementsSection extends ConsumerWidget {
@@ -532,8 +595,9 @@ class _RecentMovementsSection extends ConsumerWidget {
                     icon: isExpense ? Icons.arrow_downward : Icons.arrow_upward,
                     title: m.note ?? (isExpense ? 'Gasto' : 'Ingreso'),
                     category: 'Movimiento', // TODO: Fetch category name
-                    amount: '${isExpense ? '-' : '+'}\$${(m.amount.minorUnits / 100).toStringAsFixed(2)}',
+                    amount: CurrencyFormatter.formatAmount(isExpense ? -(m.amount.minorUnits / 100) : (m.amount.minorUnits / 100), currencyCode: m.amount.currency.code),
                     isExpense: isExpense,
+                    movement: m,
                   ),
                 );
               }).toList(),
@@ -554,6 +618,7 @@ class _MovementTile extends StatelessWidget {
     required this.category,
     required this.amount,
     required this.isExpense,
+    required this.movement,
   });
 
   final IconData icon;
@@ -561,12 +626,13 @@ class _MovementTile extends StatelessWidget {
   final String category;
   final String amount;
   final bool isExpense;
+  final Movement movement;
 
   @override
   Widget build(BuildContext context) {
     return GlassCard(
       padding: const EdgeInsets.all(12),
-      onTap: () {},
+      onTap: () => context.push('/movements/detail', extra: movement),
       child: Row(
         children: [
           Container(
@@ -598,6 +664,13 @@ class _MovementTile extends StatelessWidget {
                         color: AppColors.onSurfaceVariant,
                       ),
                 ),
+                const SizedBox(height: 2),
+                Text(
+                  '${movement.occurredAt.day} ${_getShortMonth(movement.occurredAt.month)} ${movement.occurredAt.year}',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
+                      ),
+                ),
               ],
             ),
           ),
@@ -611,4 +684,10 @@ class _MovementTile extends StatelessWidget {
       ),
     );
   }
+}
+
+String _getShortMonth(int month) {
+  const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  if (month >= 1 && month <= 12) return months[month - 1];
+  return '';
 }

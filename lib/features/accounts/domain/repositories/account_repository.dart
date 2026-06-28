@@ -7,4 +7,5 @@ abstract interface class AccountRepository {
   Future<List<AccountBalance>> balances();
   Future<void> save(Account account);
   Future<void> setActive(String id, {required bool active});
+  Future<void> updateCurrency(String id, {required String currencyCode, required int currencyScale});
 }

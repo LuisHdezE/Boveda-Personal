@@ -74,6 +74,8 @@ class LoginNotifier extends Notifier<LoginState> {
     }
   }
 
+
+
   void logout() {
     ref.read(sessionProvider.notifier).updateState(AuthSession.anonymous());
   }
@@ -82,3 +84,5 @@ class LoginNotifier extends Notifier<LoginState> {
 final loginNotifierProvider = NotifierProvider<LoginNotifier, LoginState>(
   LoginNotifier.new,
 );
+
+

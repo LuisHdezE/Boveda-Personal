@@ -3,8 +3,11 @@ import 'package:boveda_personal/features/simulator/domain/simulation_data.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:boveda_personal/core/providers/core_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import 'package:boveda_personal/features/dashboard/presentation/providers.dart';
 
 class SimulatorView extends ConsumerStatefulWidget {
   const SimulatorView({super.key});
@@ -14,11 +17,45 @@ class SimulatorView extends ConsumerStatefulWidget {
 }
 
 class _SimulatorViewState extends ConsumerState<SimulatorView> {
-  String _currency = 'CUP';
-  final _initialBalanceController = TextEditingController(text: '100000');
+  String? _currency;
+  late final TextEditingController _initialBalanceController;
   final _monthlySavingsController = TextEditingController(text: '25000');
   final _rateController = TextEditingController(text: '10');
   double _years = 5;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialBalanceController = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadCurrentBalance();
+    });
+  }
+
+  void _loadCurrentBalance() {
+    final balances = ref.read(accountBalancesProvider).value;
+    if (balances == null) return;
+    
+    final secCode = ref.read(appSettingsProvider).value?.secondaryCurrencyCode ?? 'CUP';
+    final currentCurrency = _currency ?? secCode;
+    
+    final account = balances.firstWhere(
+      (b) => b.currency.code == currentCurrency,
+      orElse: () => balances.first,
+    );
+    
+    final value = account.balance.minorUnits / 100.0;
+    _initialBalanceController.text = value.toStringAsFixed(2).replaceAll('.00', '');
+  }
+
+  void _onCurrencyChanged(String newCurrency) {
+    if (_currency != newCurrency) {
+      setState(() {
+         _currency = newCurrency;
+      });
+      _loadCurrentBalance();
+    }
+  }
 
   @override
   void dispose() {
@@ -30,6 +67,8 @@ class _SimulatorViewState extends ConsumerState<SimulatorView> {
 
   @override
   Widget build(BuildContext context) {
+    final secCode = ref.watch(appSettingsProvider).value?.secondaryCurrencyCode ?? 'CUP';
+    final currentCurrency = _currency ?? secCode;
     return MainScaffold(
       title: 'Simulador',
       showBackButton: true,
@@ -70,16 +109,16 @@ class _SimulatorViewState extends ConsumerState<SimulatorView> {
                           children: [
                             Expanded(
                               child: _CurrencyTab(
-                                label: 'CUP (\$)',
-                                isSelected: _currency == 'CUP',
-                                onTap: () => setState(() => _currency = 'CUP'),
+                                label: '$secCode (\$)',
+                                isSelected: currentCurrency == secCode,
+                                onTap: () => _onCurrencyChanged(secCode),
                               ),
                             ),
                             Expanded(
                               child: _CurrencyTab(
                                 label: 'USD (U\$D)',
-                                isSelected: _currency == 'USD',
-                                onTap: () => setState(() => _currency = 'USD'),
+                                isSelected: currentCurrency == 'USD',
+                                onTap: () => _onCurrencyChanged('USD'),
                               ),
                             ),
                           ],
@@ -231,15 +270,20 @@ class _SimulatorViewState extends ConsumerState<SimulatorView> {
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
                   onPressed: () {
-                    final initial = double.tryParse(_initialBalanceController.text) ?? 0;
-                    final savings = double.tryParse(_monthlySavingsController.text) ?? 0;
-                    final rate = double.tryParse(_rateController.text) ?? 0;
+                    final initialStr = _initialBalanceController.text.replaceAll(',', '');
+                    final savingsStr = _monthlySavingsController.text.replaceAll(',', '');
+                    final rateStr = _rateController.text.replaceAll(',', '');
+                    
+                    final initial = double.tryParse(initialStr) ?? 0;
+                    final savings = double.tryParse(savingsStr) ?? 0;
+                    final rate = double.tryParse(rateStr) ?? 0;
+                    
                     final data = SimulationData(
                       initialBalance: initial,
                       monthlySavings: savings,
                       annualRate: rate,
                       years: _years.toInt(),
-                      currency: _currency,
+                      currency: currentCurrency,
                     );
                     context.push('/simulator/result', extra: data);
                   },

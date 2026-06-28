@@ -63,6 +63,7 @@ class ConfigureApplication {
     final settings = AppSettings(
       userId: userId,
       primaryCurrencyCode: setup.primaryCurrency.code,
+      secondaryCurrencyCode: setup.secondaryCurrency.code,
       locale: setup.locale,
       biometricsEnabled: false,
       autoLockDuration: Duration.zero,

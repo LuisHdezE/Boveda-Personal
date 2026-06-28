@@ -2,6 +2,7 @@ class AppSettings {
   const AppSettings({
     required this.userId,
     required String primaryCurrencyCode,
+    required this.secondaryCurrencyCode,
     required this.locale,
     required this.biometricsEnabled,
     required this.autoLockDuration,
@@ -14,6 +15,7 @@ class AppSettings {
 
   final String userId;
   final String _primaryCurrencyCode;
+  final String secondaryCurrencyCode;
   final String locale;
   final bool biometricsEnabled;
   final Duration? autoLockDuration;
@@ -25,6 +27,7 @@ class AppSettings {
 
   AppSettings copyWith({
     String? primaryCurrencyCode,
+    String? secondaryCurrencyCode,
     String? locale,
     bool? biometricsEnabled,
     Duration? autoLockDuration,
@@ -35,6 +38,7 @@ class AppSettings {
     return AppSettings(
       userId: userId,
       primaryCurrencyCode: primaryCurrencyCode ?? this.primaryCurrencyCode,
+      secondaryCurrencyCode: secondaryCurrencyCode ?? this.secondaryCurrencyCode,
       locale: locale ?? this.locale,
       biometricsEnabled: biometricsEnabled ?? this.biometricsEnabled,
       autoLockDuration: clearAutoLockDuration
@@ -51,6 +55,7 @@ class AppSettings {
     return other is AppSettings &&
         other.userId == userId &&
         other.primaryCurrencyCode == primaryCurrencyCode &&
+        other.secondaryCurrencyCode == secondaryCurrencyCode &&
         other.locale == locale &&
         other.biometricsEnabled == biometricsEnabled &&
         other.autoLockDuration == autoLockDuration &&
@@ -63,6 +68,7 @@ class AppSettings {
   int get hashCode => Object.hash(
     userId,
     primaryCurrencyCode,
+    secondaryCurrencyCode,
     locale,
     biometricsEnabled,
     autoLockDuration,

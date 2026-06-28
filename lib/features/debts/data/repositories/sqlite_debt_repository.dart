@@ -17,6 +17,9 @@ class SqliteDebtRepository implements DebtRepository {
       userId: userId,
       name: debt.name,
       amountMinor: debt.amount.minorUnits,
+      remainingAmountMinor: debt.remainingAmount.minorUnits,
+      totalInstallments: debt.totalInstallments,
+      paidInstallments: debt.paidInstallments,
       currencyCode: debt.amount.currency.code,
       dueDate: debt.dueDate,
       isActive: debt.isActive,
@@ -39,7 +42,10 @@ class SqliteDebtRepository implements DebtRepository {
       return Debt(
         id: m.id,
         name: m.name,
-        amount: Money(minorUnits: m.amountMinor, currency: Currency(code: m.currencyCode, scale: 2)), // Use minorUnits named param
+        amount: Money(minorUnits: m.amountMinor, currency: Currency(code: m.currencyCode, scale: 2)),
+        remainingAmount: Money(minorUnits: m.remainingAmountMinor, currency: Currency(code: m.currencyCode, scale: 2)),
+        totalInstallments: m.totalInstallments,
+        paidInstallments: m.paidInstallments,
         dueDate: m.dueDate,
         isActive: m.isActive,
         createdAt: m.createdAt,

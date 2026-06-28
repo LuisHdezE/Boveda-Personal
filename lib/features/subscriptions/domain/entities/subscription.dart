@@ -11,6 +11,7 @@ class Subscription {
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,
+    this.lastPaymentDate,
   });
 
   final String id;
@@ -21,6 +22,7 @@ class Subscription {
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? lastPaymentDate;
 
   Subscription copyWith({
     String? name,
@@ -28,6 +30,7 @@ class Subscription {
     String? billingCycle,
     DateTime? nextBillingDate,
     bool? isActive,
+    DateTime? lastPaymentDate,
   }) {
     return Subscription(
       id: id,
@@ -38,6 +41,7 @@ class Subscription {
       isActive: isActive ?? this.isActive,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
+      lastPaymentDate: lastPaymentDate ?? this.lastPaymentDate,
     );
   }
 }

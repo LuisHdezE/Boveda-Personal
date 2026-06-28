@@ -1,4 +1,5 @@
 import 'package:boveda_personal/app/theme/app_colors.dart';
+import 'package:boveda_personal/features/reports/presentation/providers/quarterly_report_provider.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -29,11 +30,17 @@ class QuarterlyReportView extends ConsumerWidget {
   }
 }
 
-class _QuarterSelector extends StatelessWidget {
+class _QuarterSelector extends ConsumerWidget {
   const _QuarterSelector();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentQuarter = ref.watch(currentQuarterStartProvider);
+    final monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    final startMonth = monthNames[currentQuarter.month - 1];
+    final endMonth = monthNames[currentQuarter.month + 1];
+    final quarterNum = (currentQuarter.month - 1) ~/ 3 + 1;
+
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -41,19 +48,23 @@ class _QuarterSelector extends StatelessWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.chevron_left, color: AppColors.onSurfaceVariant),
-            onPressed: () {},
+            onPressed: () {
+              ref.read(currentQuarterStartProvider.notifier).setQuarter(
+                DateTime(currentQuarter.year, currentQuarter.month - 3, 1)
+              );
+            },
           ),
           Column(
             children: [
               Text(
-                'Ene - Mar 2024',
+                '$startMonth - $endMonth ${currentQuarter.year}',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: AppColors.onSurface,
                     ),
               ),
               const SizedBox(height: 4),
               Text(
-                'Q1 Performance',
+                'Q$quarterNum Performance',
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       color: AppColors.onSurfaceVariant,
                     ),
@@ -62,7 +73,11 @@ class _QuarterSelector extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
-            onPressed: () {},
+            onPressed: () {
+              ref.read(currentQuarterStartProvider.notifier).setQuarter(
+                DateTime(currentQuarter.year, currentQuarter.month + 3, 1)
+              );
+            },
           ),
         ],
       ),
@@ -70,75 +85,81 @@ class _QuarterSelector extends StatelessWidget {
   }
 }
 
-class _SummaryGrid extends StatelessWidget {
+class _SummaryGrid extends ConsumerWidget {
   const _SummaryGrid();
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Total Savings
-        GlassCard(
-          padding: const EdgeInsets.all(16),
-          height: 128,
-          child: Stack(
-            children: [
-              Positioned(
-                top: -16,
-                right: -16,
-                child: Container(
-                  width: 96,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    color: AppColors.secondary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.secondary.withValues(alpha: 0.1),
-                        blurRadius: 40,
-                        spreadRadius: 20,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reportAsync = ref.watch(quarterlyReportProvider);
+
+    return reportAsync.when(
+      data: (report) {
+        return Column(
+          children: [
+            // Total Savings
+            GlassCard(
+              padding: const EdgeInsets.all(16),
+              height: 128,
+              child: Stack(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'AHORRO TOTAL DEL TRIMESTRE',
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              color: AppColors.onSurfaceVariant,
-                              letterSpacing: 1.5,
-                            ),
+                  Positioned(
+                    top: -16,
+                    right: -16,
+                    child: Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.secondary.withValues(alpha: 0.1),
+                            blurRadius: 40,
+                            spreadRadius: 20,
+                          ),
+                        ],
                       ),
-                      const Icon(Icons.savings, color: AppColors.secondary),
-                    ],
+                    ),
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '\$12,450.00',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              color: AppColors.secondary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Icon(Icons.trending_up, color: AppColors.income, size: 14),
-                          const SizedBox(width: 4),
                           Text(
-                            '+15% vs Q4',
+                            'AHORRO TOTAL DEL TRIMESTRE',
                             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  color: AppColors.income,
+                                  color: AppColors.onSurfaceVariant,
+                                  letterSpacing: 1.5,
                                 ),
+                          ),
+                          const Icon(Icons.savings, color: AppColors.secondary),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '\$${report.netSavings.toStringAsFixed(2)}',
+                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                  color: AppColors.secondary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.trending_up, color: AppColors.income, size: 14),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Ahorro Neto',
+                                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                      color: AppColors.income,
+                                    ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -146,8 +167,6 @@ class _SummaryGrid extends StatelessWidget {
                   ),
                 ],
               ),
-            ],
-          ),
         ),
         const SizedBox(height: 8),
         Row(
@@ -163,24 +182,31 @@ class _SummaryGrid extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Promedio Gastos',
-                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                color: AppColors.onSurfaceVariant,
-                              ),
+                        Expanded(
+                          child: Text(
+                            'Promedio Gastos',
+                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: AppColors.onSurfaceVariant,
+                                ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
+                        const SizedBox(width: 4),
                         const Icon(Icons.money_off, color: AppColors.expense, size: 18),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '\$3,120',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: AppColors.expense,
-                                fontWeight: FontWeight.w500,
-                              ),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '\$${report.averageExpense.toStringAsFixed(2)}',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: AppColors.expense,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
                         ),
                         Text(
                           '/ mes',
@@ -206,27 +232,34 @@ class _SummaryGrid extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Crecimiento',
-                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                color: AppColors.onSurfaceVariant,
-                              ),
+                        Expanded(
+                          child: Text(
+                            'Ingresos Totales',
+                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: AppColors.onSurfaceVariant,
+                                ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        const Icon(Icons.account_balance, color: AppColors.tertiary, size: 18),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.arrow_upward, color: AppColors.income, size: 18),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '+4.2%',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: AppColors.tertiary,
-                                fontWeight: FontWeight.w500,
-                              ),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '\$${report.totalIncome.toStringAsFixed(2)}',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: AppColors.income,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
                         ),
                         Text(
-                          'Patrimonial',
+                          'En el trimestre',
                           style: Theme.of(context).textTheme.labelMedium?.copyWith(
                                 color: AppColors.onSurfaceVariant,
                               ),
@@ -241,14 +274,26 @@ class _SummaryGrid extends StatelessWidget {
         ),
       ],
     );
+    },
+    loading: () => const Center(child: CircularProgressIndicator()),
+    error: (e, st) => Text('Error: $e'),
+    );
   }
 }
 
-class _ComparativeChart extends StatelessWidget {
+class _ComparativeChart extends ConsumerWidget {
   const _ComparativeChart();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reportAsync = ref.watch(quarterlyReportProvider);
+    final currentQuarter = ref.watch(currentQuarterStartProvider);
+    
+    final monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    final m1 = monthNames[currentQuarter.month - 1].toUpperCase();
+    final m2 = monthNames[currentQuarter.month].toUpperCase();
+    final m3 = monthNames[currentQuarter.month + 1].toUpperCase();
+
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -339,7 +384,7 @@ class _ComparativeChart extends StatelessWidget {
                   bottom: 0,
                   left: 0,
                   child: Text(
-                    'ENE',
+                    m1,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: AppColors.onSurfaceVariant,
                         ),
@@ -349,7 +394,7 @@ class _ComparativeChart extends StatelessWidget {
                   bottom: 0,
                   left: 130, // approximate middle
                   child: Text(
-                    'FEB',
+                    m2,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: AppColors.onSurfaceVariant,
                         ),
@@ -359,7 +404,7 @@ class _ComparativeChart extends StatelessWidget {
                   bottom: 0,
                   right: 0,
                   child: Text(
-                    'MAR',
+                    m3,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: AppColors.onSurfaceVariant,
                         ),
@@ -367,8 +412,15 @@ class _ComparativeChart extends StatelessWidget {
                 ),
                 // Pseudo-lines for the chart
                 Positioned.fill(
-                  child: CustomPaint(
-                    painter: _ChartPainter(),
+                  child: reportAsync.when(
+                    data: (report) => CustomPaint(
+                      painter: _ChartPainter(
+                        incomePerMonth: report.incomePerMonth,
+                        expensePerMonth: report.expensePerMonth,
+                      ),
+                    ),
+                    loading: () => const SizedBox(),
+                    error: (_, __) => const SizedBox(),
                   ),
                 ),
               ],
@@ -381,8 +433,33 @@ class _ComparativeChart extends StatelessWidget {
 }
 
 class _ChartPainter extends CustomPainter {
+  _ChartPainter({required this.incomePerMonth, required this.expensePerMonth});
+  
+  final List<double> incomePerMonth;
+  final List<double> expensePerMonth;
+
   @override
   void paint(Canvas canvas, Size size) {
+    double maxVal = 0;
+    for (var i = 0; i < 3; i++) {
+      if (incomePerMonth[i] > maxVal) maxVal = incomePerMonth[i];
+      if (expensePerMonth[i] > maxVal) maxVal = expensePerMonth[i];
+    }
+    if (maxVal == 0) maxVal = 1; // prevent division by zero
+
+    final chartHeight = 115.0; // max Y in the drawing area
+    final chartBottom = 125.0;
+    
+    double getY(double val) {
+      return chartBottom - (val / maxVal * chartHeight);
+    }
+    
+    double getX(int index) {
+      if (index == 0) return 0;
+      if (index == 1) return size.width * 0.5;
+      return size.width;
+    }
+
     // Income line (green/tertiary)
     final incomePaint = Paint()
       ..color = AppColors.tertiary
@@ -391,10 +468,9 @@ class _ChartPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final incomePath = Path()
-      ..moveTo(0, 60)
-      ..quadraticBezierTo(size.width * 0.16, 60, size.width * 0.33, 40)
-      ..quadraticBezierTo(size.width * 0.5, 45, size.width * 0.66, 50)
-      ..quadraticBezierTo(size.width * 0.83, 20, size.width, 25);
+      ..moveTo(getX(0), getY(incomePerMonth[0]))
+      ..lineTo(getX(1), getY(incomePerMonth[1]))
+      ..lineTo(getX(2), getY(incomePerMonth[2]));
 
     // Expense line (red/error)
     final expensePaint = Paint()
@@ -404,10 +480,9 @@ class _ChartPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final expensePath = Path()
-      ..moveTo(0, 90)
-      ..quadraticBezierTo(size.width * 0.16, 90, size.width * 0.33, 80)
-      ..quadraticBezierTo(size.width * 0.5, 85, size.width * 0.66, 90)
-      ..quadraticBezierTo(size.width * 0.83, 70, size.width, 75);
+      ..moveTo(getX(0), getY(expensePerMonth[0]))
+      ..lineTo(getX(1), getY(expensePerMonth[1]))
+      ..lineTo(getX(2), getY(expensePerMonth[2]));
 
     // Gradients
     final incomeGradient = LinearGradient(
@@ -424,8 +499,8 @@ class _ChartPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final incomeAreaPath = Path.from(incomePath)
-      ..lineTo(size.width, 125)
-      ..lineTo(0, 125)
+      ..lineTo(size.width, chartBottom)
+      ..lineTo(0, chartBottom)
       ..close();
 
     final expenseGradient = LinearGradient(
@@ -442,8 +517,8 @@ class _ChartPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final expenseAreaPath = Path.from(expensePath)
-      ..lineTo(size.width, 125)
-      ..lineTo(0, 125)
+      ..lineTo(size.width, chartBottom)
+      ..lineTo(0, chartBottom)
       ..close();
 
     canvas.drawPath(incomeAreaPath, incomeAreaPaint);
@@ -456,11 +531,19 @@ class _ChartPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class _MonthlyBreakdown extends StatelessWidget {
+class _MonthlyBreakdown extends ConsumerWidget {
   const _MonthlyBreakdown();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reportAsync = ref.watch(quarterlyReportProvider);
+    final currentQuarter = ref.watch(currentQuarterStartProvider);
+    
+    final monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    final m1 = monthNames[currentQuarter.month - 1];
+    final m2 = monthNames[currentQuarter.month];
+    final m3 = monthNames[currentQuarter.month + 1];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -474,25 +557,35 @@ class _MonthlyBreakdown extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        _BreakdownCard(
-          month: 'Enero',
-          budgetPct: 85,
-          income: '+\$5,200',
-          expense: '-\$3,400',
-        ),
-        const SizedBox(height: 12),
-        _BreakdownCard(
-          month: 'Febrero',
-          budgetPct: 92,
-          income: '+\$4,800',
-          expense: '-\$3,100',
-        ),
-        const SizedBox(height: 12),
-        _BreakdownCard(
-          month: 'Marzo',
-          budgetPct: 78,
-          income: '+\$5,500',
-          expense: '-\$2,860',
+        reportAsync.when(
+          data: (report) {
+            return Column(
+              children: [
+                _BreakdownCard(
+                  month: m1,
+                  budgetPct: 0, // Mock budget for now
+                  income: '+\$${report.incomePerMonth[0].toStringAsFixed(2)}',
+                  expense: '-\$${report.expensePerMonth[0].toStringAsFixed(2)}',
+                ),
+                const SizedBox(height: 12),
+                _BreakdownCard(
+                  month: m2,
+                  budgetPct: 0,
+                  income: '+\$${report.incomePerMonth[1].toStringAsFixed(2)}',
+                  expense: '-\$${report.expensePerMonth[1].toStringAsFixed(2)}',
+                ),
+                const SizedBox(height: 12),
+                _BreakdownCard(
+                  month: m3,
+                  budgetPct: 0,
+                  income: '+\$${report.incomePerMonth[2].toStringAsFixed(2)}',
+                  expense: '-\$${report.expensePerMonth[2].toStringAsFixed(2)}',
+                ),
+              ],
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => const SizedBox(),
         ),
       ],
     );

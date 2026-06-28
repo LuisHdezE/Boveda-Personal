@@ -68,4 +68,20 @@ class AccountDao {
       throw StateError('Account not found: $id');
     }
   }
+
+  Future<void> updateCurrency(String id, {required String currencyCode, required int currencyScale}) async {
+    final db = await _database.open();
+    final changed = await db.update(
+      DatabaseTables.accounts,
+      {
+        'currency_code': currencyCode,
+        'currency_scale': currencyScale,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (changed == 0) {
+      throw StateError('Account not found: $id');
+    }
+  }
 }

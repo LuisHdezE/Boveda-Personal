@@ -2,6 +2,8 @@ import 'package:boveda_personal/app/theme/app_colors.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:boveda_personal/core/providers/core_providers.dart';
 
 class MovementFiltersView extends StatelessWidget {
   const MovementFiltersView({super.key});
@@ -114,24 +116,29 @@ class MovementFiltersView extends StatelessWidget {
               // Moneda
               const _SectionTitle('Moneda'),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _CurrencyRadio(
-                      title: 'CUP',
-                      subtitle: 'Pesos',
-                      isSelected: true,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _CurrencyRadio(
-                      title: 'USD',
-                      subtitle: 'Dólares',
-                      isSelected: false,
-                    ),
-                  ),
-                ],
+              Consumer(
+                builder: (context, ref, _) {
+                  final secCode = ref.watch(appSettingsProvider).value?.secondaryCurrencyCode ?? 'CUP';
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: _CurrencyRadio(
+                          title: secCode,
+                          subtitle: 'Principal',
+                          isSelected: true,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _CurrencyRadio(
+                          title: 'USD',
+                          subtitle: 'Base',
+                          isSelected: false,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
               const _SectionDivider(),
 

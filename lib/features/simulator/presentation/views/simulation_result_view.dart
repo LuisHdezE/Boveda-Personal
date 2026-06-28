@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:boveda_personal/app/theme/app_colors.dart';
 import 'package:boveda_personal/features/simulator/domain/simulation_data.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
@@ -53,6 +54,10 @@ class _HeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final percentage = data.totalSaved > 0 
+      ? (data.estimatedInterests / data.totalSaved) * 100 
+      : 0.0;
+      
     return GlassCard(
       padding: const EdgeInsets.all(24),
       child: Stack(
@@ -101,7 +106,7 @@ class _HeroCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                '${data.currency == 'CUP' ? '\$' : 'USD '}${data.finalBalance.toStringAsFixed(2)}',
+                '${data.currency != 'USD' ? '\$' : 'USD '}${data.finalBalance.toStringAsFixed(2)}',
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
                       color: AppColors.secondary,
                       fontWeight: FontWeight.bold,
@@ -121,7 +126,7 @@ class _HeroCard extends StatelessWidget {
                     const Icon(Icons.trending_up, color: AppColors.tertiary, size: 16),
                     const SizedBox(width: 8),
                     Text(
-                      '+24.5% vs Ahorro Simple',
+                      '+${percentage.toStringAsFixed(1)}% vs Ahorro Simple',
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                             color: AppColors.tertiary,
                           ),
@@ -162,7 +167,7 @@ class _SummaryGrid extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${data.currency == 'CUP' ? '\$' : 'USD '}${data.totalSaved.toStringAsFixed(2)}',
+                  '${data.currency != 'USD' ? '\$' : 'USD '}${data.totalSaved.toStringAsFixed(2)}',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: AppColors.onSurface,
                       ),
@@ -190,7 +195,7 @@ class _SummaryGrid extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '+${data.currency == 'CUP' ? '\$' : 'USD '}${data.estimatedInterests.toStringAsFixed(2)}',
+                  '+${data.currency != 'USD' ? '\$' : 'USD '}${data.estimatedInterests.toStringAsFixed(2)}',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: AppColors.tertiary,
                       ),
@@ -205,59 +210,7 @@ class _SummaryGrid extends StatelessWidget {
   }
 }
 
-class _GoalCard extends StatelessWidget {
-  const _GoalCard();
 
-  @override
-  Widget build(BuildContext context) {
-    return GlassCard(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.secondary.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.flag, color: AppColors.secondary),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Meta Alcanzada',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.onSurface,
-                        ),
-                  ),
-                  Text(
-                    'Objetivo: \$150,000',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          Text(
-            '96%',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _MonthlyBreakdown extends StatelessWidget {
   const _MonthlyBreakdown({required this.data});
@@ -265,29 +218,37 @@ class _MonthlyBreakdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cur = data.currency == 'CUP' ? '\$' : 'USD ';
+    final cur = data.currency != 'USD' ? '\$' : 'USD ';
+    
+    final int months = data.years * 12;
+    final List<int> milestones = [];
+    if (months > 0) milestones.add(min(12, months));
+    if (months > 24) milestones.add(months ~/ 2);
+    if (months > 12) milestones.add(months);
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Text(
-            'Desglose (Primeros 3 meses)',
+            'Hitos de la Proyección',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: AppColors.onSurface,
                 ),
           ),
         ),
         const SizedBox(height: 12),
-        ...List.generate(3, (i) {
-          final month = i + 1;
+        ...milestones.map((month) {
           final balance = data.balanceAtMonth(month);
           final interest = data.interestAtMonth(month);
+          final label = month % 12 == 0 ? 'Año ${month ~/ 12}' : 'Mes $month';
+          
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: _BreakdownItem(
-              month: 'Mes $month',
-              aportacion: '+ $cur${data.monthlySavings.toStringAsFixed(2)} aportación',
+              month: label,
+              aportacion: '+ $cur${data.monthlySavings.toStringAsFixed(2)} mensual',
               amount: '$cur${balance.toStringAsFixed(2)}',
               interest: '+ $cur${interest.toStringAsFixed(2)} int.',
             ),

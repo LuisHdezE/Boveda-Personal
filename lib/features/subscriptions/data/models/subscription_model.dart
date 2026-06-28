@@ -13,6 +13,7 @@ class SubscriptionModel {
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,
+    this.lastPaymentDate,
   });
 
   final String id;
@@ -25,6 +26,7 @@ class SubscriptionModel {
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? lastPaymentDate;
 
   Map<String, dynamic> toMap() {
     return {
@@ -38,6 +40,9 @@ class SubscriptionModel {
       'is_active': isActive ? 1 : 0,
       'created_at': RowConverters.dateToSql(createdAt),
       'updated_at': RowConverters.dateToSql(updatedAt),
+      'last_payment_date': lastPaymentDate != null
+          ? RowConverters.dateToSql(lastPaymentDate!)
+          : null,
     };
   }
 
@@ -49,10 +54,15 @@ class SubscriptionModel {
       amountMinor: map['amount_minor'] as int,
       currencyCode: map['currency_code'] as String,
       billingCycle: map['billing_cycle'] as String,
-      nextBillingDate: RowConverters.dateFromSql(map['next_billing_date'] as Object),
+      nextBillingDate: RowConverters.dateFromSql(
+        map['next_billing_date'] as Object,
+      ),
       isActive: (map['is_active'] as int) == 1,
       createdAt: RowConverters.dateFromSql(map['created_at'] as Object),
       updatedAt: RowConverters.dateFromSql(map['updated_at'] as Object),
+      lastPaymentDate: map['last_payment_date'] != null
+          ? RowConverters.dateFromSql(map['last_payment_date'] as Object)
+          : null,
     );
   }
 }

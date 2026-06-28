@@ -1,5 +1,5 @@
 import 'package:boveda_personal/app/theme/app_colors.dart';
-import 'package:boveda_personal/features/dashboard/presentation/providers.dart';
+import 'package:boveda_personal/features/reports/presentation/providers/monthly_report_provider.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,13 +10,13 @@ class MonthlyReportView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final summaryAsync = ref.watch(dashboardSummaryProvider);
-    final now = DateTime.now();
+    final summaryAsync = ref.watch(monthlyReportProvider);
+    final currentMonth = ref.watch(currentMonthStartProvider);
     final monthNames = [
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ];
-    final currentMonthStr = '${monthNames[now.month - 1]} ${now.year}';
+    final currentMonthStr = '${monthNames[currentMonth.month - 1]} ${currentMonth.year}';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -36,58 +36,68 @@ class MonthlyReportView extends ConsumerWidget {
           ),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        children: [
-          _MonthSelector(currentMonthStr: currentMonthStr),
-          const SizedBox(height: 24),
-          summaryAsync.when(
-            data: (summary) {
-              final incomeAmount = summary.income / 100;
-              final expenseAmount = summary.expense / 100;
-              final savingsAmount = incomeAmount - expenseAmount;
-
-              return Column(
-                children: [
-                  _ReportCard(
-                    title: 'Ingresos',
-                    amount: '\$${incomeAmount.toStringAsFixed(2)}',
-                    color: AppColors.income,
-                    icon: Icons.arrow_upward,
-                  ),
-                  const SizedBox(height: 12),
-                  _ReportCard(
-                    title: 'Gastos',
-                    amount: '\$${expenseAmount.toStringAsFixed(2)}',
-                    color: AppColors.expense,
-                    icon: Icons.arrow_downward,
-                  ),
-                  const SizedBox(height: 12),
-                  _ReportCard(
-                    title: 'Ahorro',
-                    amount: '\$${savingsAmount.toStringAsFixed(2)}',
-                    color: AppColors.onSurface,
-                    icon: Icons.savings,
-                  ),
-                ],
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, st) => Text('Error: $e'),
+      body: SafeArea(
+        bottom: false,
+        child: ListView(
+          padding: EdgeInsets.only(
+            left: 20, 
+            right: 20, 
+            top: 24, 
+            bottom: MediaQuery.of(context).padding.bottom + 40
           ),
-        ],
+          children: [
+            _MonthSelector(currentMonthStr: currentMonthStr),
+            const SizedBox(height: 24),
+            summaryAsync.when(
+              data: (summary) {
+                final incomeAmount = summary.totalIncome;
+                final expenseAmount = summary.totalExpense;
+                final savingsAmount = summary.netSavings;
+  
+                return Column(
+                  children: [
+                    _ReportCard(
+                      title: 'Ingresos',
+                      amount: '\$${incomeAmount.toStringAsFixed(2)}',
+                      color: AppColors.income,
+                      icon: Icons.arrow_upward,
+                    ),
+                    const SizedBox(height: 12),
+                    _ReportCard(
+                      title: 'Gastos',
+                      amount: '\$${expenseAmount.toStringAsFixed(2)}',
+                      color: AppColors.expense,
+                      icon: Icons.arrow_downward,
+                    ),
+                    const SizedBox(height: 12),
+                    _ReportCard(
+                      title: 'Ahorro',
+                      amount: '\$${savingsAmount.toStringAsFixed(2)}',
+                      color: AppColors.onSurface,
+                      icon: Icons.savings,
+                    ),
+                  ],
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, st) => Text('Error: $e'),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _MonthSelector extends StatelessWidget {
+class _MonthSelector extends ConsumerWidget {
   const _MonthSelector({required this.currentMonthStr});
   
   final String currentMonthStr;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentMonth = ref.watch(currentMonthStartProvider);
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -100,7 +110,11 @@ class _MonthSelector extends StatelessWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.chevron_left, color: AppColors.onSurfaceVariant),
-            onPressed: () {}, // For future implementation
+            onPressed: () {
+              ref.read(currentMonthStartProvider.notifier).setDate(
+                DateTime(currentMonth.year, currentMonth.month - 1, 1)
+              );
+            },
           ),
           Text(
             currentMonthStr,
@@ -110,7 +124,11 @@ class _MonthSelector extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
-            onPressed: () {}, // For future implementation
+            onPressed: () {
+              ref.read(currentMonthStartProvider.notifier).setDate(
+                DateTime(currentMonth.year, currentMonth.month + 1, 1)
+              );
+            },
           ),
         ],
       ),
@@ -146,19 +164,28 @@ class _ReportCard extends StatelessWidget {
             child: Icon(icon, color: color, size: 24),
           ),
           const SizedBox(width: 16),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                ),
+          Expanded(
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-          const Spacer(),
-          Text(
-            amount,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w600,
-                ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Text(
+                amount,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
           ),
         ],
       ),

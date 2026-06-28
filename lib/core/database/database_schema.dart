@@ -68,9 +68,23 @@ abstract final class DatabaseSeeds {
       'movement_type': 'expense',
     },
     {
+      'id': 'expense-subscriptions',
+      'name': 'Suscripciones',
+      'icon': 'card_membership',
+      'color': 0xFFFFB4AB,
+      'movement_type': 'expense',
+    },
+    {
       'id': 'expense-other',
       'name': 'Otros gastos',
       'icon': 'more_horiz',
+      'color': 0xFFFFB4AB,
+      'movement_type': 'expense',
+    },
+    {
+      'id': 'expense-debts',
+      'name': 'Abono a deudas',
+      'icon': 'account_balance_wallet',
       'color': 0xFFFFB4AB,
       'movement_type': 'expense',
     },
@@ -78,7 +92,7 @@ abstract final class DatabaseSeeds {
 }
 
 abstract final class DatabaseSchema {
-  static const version = 2;
+  static const version = 6;
 
   static const requiredObjects = <String>{
     DatabaseTables.users,
@@ -132,6 +146,11 @@ abstract final class DatabaseSchema {
         CHECK (
           primary_currency_code = upper(primary_currency_code)
           AND length(primary_currency_code) BETWEEN 3 AND 8
+        ),
+      secondary_currency_code TEXT NOT NULL DEFAULT 'CUP'
+        CHECK (
+          secondary_currency_code = upper(secondary_currency_code)
+          AND length(secondary_currency_code) BETWEEN 3 AND 8
         ),
       locale TEXT NOT NULL DEFAULT 'es',
       biometrics_enabled INTEGER NOT NULL DEFAULT 0
@@ -537,6 +556,9 @@ abstract final class DatabaseSchema {
       user_id TEXT NOT NULL REFERENCES ${DatabaseTables.users}(id) ON DELETE CASCADE,
       name TEXT NOT NULL CHECK (length(trim(name)) > 0),
       amount_minor INTEGER NOT NULL,
+      remaining_amount_minor INTEGER NOT NULL DEFAULT 0,
+      total_installments INTEGER,
+      paid_installments INTEGER NOT NULL DEFAULT 0,
       currency_code TEXT NOT NULL CHECK (length(currency_code) = 3),
       due_date TEXT,
       is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
@@ -555,7 +577,8 @@ abstract final class DatabaseSchema {
       next_billing_date TEXT NOT NULL,
       is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
       created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
+      updated_at TEXT NOT NULL,
+      last_payment_date TEXT
     )
     ''',
   ];

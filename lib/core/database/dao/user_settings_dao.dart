@@ -9,7 +9,11 @@ class UserSettingsDao {
 
   Future<void> insertUser(Map<String, Object?> values) async {
     final db = await _database.open();
-    await db.insert(DatabaseTables.users, values);
+    await db.insert(
+      DatabaseTables.users,
+      values,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<Map<String, Object?>?> findUserByUsername(String username) async {
@@ -83,6 +87,7 @@ class UserSettingsDao {
         'id',
         'user_id',
         'primary_currency_code',
+        'secondary_currency_code',
         'locale',
         'biometrics_enabled',
         'auto_lock_duration_seconds',

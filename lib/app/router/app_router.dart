@@ -4,7 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:boveda_personal/features/converter/presentation/views/calculator_view.dart';
 import 'package:boveda_personal/features/converter/presentation/views/converter_view.dart';
 import 'package:boveda_personal/features/debts/presentation/views/debts_view.dart';
+import 'package:boveda_personal/features/debts/presentation/views/debt_form_view.dart';
+import 'package:boveda_personal/features/debts/presentation/views/debt_stats_view.dart';
+import 'package:boveda_personal/features/debts/domain/entities/debt.dart';
+import 'package:boveda_personal/features/subscriptions/presentation/views/subscription_form_view.dart';
+import 'package:boveda_personal/features/subscriptions/presentation/views/subscription_stats_view.dart';
 import 'package:boveda_personal/features/subscriptions/presentation/views/subscriptions_view.dart';
+import 'package:boveda_personal/features/subscriptions/domain/entities/subscription.dart';
 import 'package:boveda_personal/features/dashboard/presentation/views/dashboard_view.dart';
 import 'package:boveda_personal/features/movements/presentation/views/movement_detail_view.dart';
 import 'package:boveda_personal/features/movements/presentation/views/movement_filters_view.dart';
@@ -20,7 +26,6 @@ import 'package:boveda_personal/features/reports/presentation/views/quarterly_re
 import 'package:boveda_personal/features/reports/presentation/views/reports_view.dart';
 import 'package:boveda_personal/features/reports/presentation/views/weekly_report_view.dart';
 import 'package:boveda_personal/features/settings/presentation/views/about_view.dart';
-import 'package:boveda_personal/features/settings/presentation/views/change_password_view.dart';
 import 'package:boveda_personal/features/settings/presentation/views/currency_management_view.dart';
 import 'package:boveda_personal/features/settings/presentation/views/profile_view.dart';
 import 'package:boveda_personal/features/settings/presentation/views/settings_view.dart';
@@ -65,10 +70,44 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.debts,
         builder: (_, _) => const DebtsView(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            builder: (_, _) => const DebtFormView(),
+          ),
+          GoRoute(
+            path: 'edit',
+            builder: (_, state) {
+              final debt = state.extra as Debt;
+              return DebtFormView(debt: debt);
+            },
+          ),
+          GoRoute(
+            path: 'stats',
+            builder: (_, _) => const DebtStatsView(),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.subscriptions,
         builder: (_, _) => const SubscriptionsView(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            builder: (_, _) => const SubscriptionFormView(),
+          ),
+          GoRoute(
+            path: 'edit',
+            builder: (_, state) {
+              final sub = state.extra as Subscription;
+              return SubscriptionFormView(subscription: sub);
+            },
+          ),
+          GoRoute(
+            path: 'stats',
+            builder: (_, _) => const SubscriptionStatsView(),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.dashboard,
@@ -88,7 +127,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/movements/detail',
-        builder: (_, _) => const MovementDetailView(),
+        builder: (_, state) {
+          final movement = state.extra as Movement;
+          return MovementDetailView(movement: movement);
+        },
       ),
       GoRoute(
         path: '/movements/filters',
@@ -159,10 +201,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'about',
             builder: (_, _) => const AboutView(),
-          ),
-          GoRoute(
-            path: 'password',
-            builder: (_, _) => const ChangePasswordView(),
           ),
           GoRoute(
             path: 'currencies',

@@ -11,10 +11,11 @@ void main() {
     final snapshot = DashboardSnapshot(
       balances: [
         AccountBalance(
-          accountId: 'usd',
+          accountId: '1',
           userId: 'user',
           currency: usd,
-          balance: Money(minorUnits: 10000, currency: usd),
+          balance: const Money(minorUnits: 100000, currency: usd), // 1000 USD
+          accountName: 'Main',
         ),
       ],
       totalInPrimaryCurrency: Money(minorUnits: 10000, currency: usd),

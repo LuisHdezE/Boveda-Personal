@@ -1,5 +1,6 @@
 import 'package:boveda_personal/app/router/app_router.dart';
 import 'package:boveda_personal/app/theme/app_colors.dart';
+import 'package:boveda_personal/features/auth/domain/entities/biometric_status.dart';
 import 'package:boveda_personal/features/auth/presentation/providers.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:flutter/material.dart';
@@ -181,23 +182,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                          fontWeight: FontWeight.w600,
                                        ),
                                  ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            InkWell(
-                              onTap: _onLogin, // Biometric login
-                              borderRadius: BorderRadius.circular(24),
-                              child: Container(
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white.withValues(alpha: 0.05),
-                                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                                ),
-                                child: const Center(
-                                  child: Icon(Icons.fingerprint, color: AppColors.wealth),
-                                ),
                               ),
                             ),
                           ],

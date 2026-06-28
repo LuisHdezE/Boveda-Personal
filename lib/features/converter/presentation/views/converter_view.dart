@@ -3,12 +3,16 @@ import 'package:boveda_personal/core/domain/value_objects/money.dart';
 import 'package:boveda_personal/core/providers/core_providers.dart';
 import 'package:boveda_personal/features/dashboard/presentation/providers.dart';
 import 'package:boveda_personal/features/movements/domain/entities/movement.dart';
+import 'package:boveda_personal/features/movements/domain/entities/transfer.dart';
 import 'package:boveda_personal/features/movements/presentation/providers.dart';
+import 'package:decimal/decimal.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:boveda_personal/core/providers/core_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:boveda_personal/features/settings/presentation/providers/calculator_currencies_provider.dart';
 
 class ConverterView extends ConsumerStatefulWidget {
   const ConverterView({super.key});
@@ -27,6 +31,25 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
     super.initState();
     _amountController.addListener(_onAmountChanged);
     _rateController.addListener(_onAmountChanged);
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadCurrentRate();
+    });
+  }
+
+  Future<void> _loadCurrentRate() async {
+    final settings = await ref.read(appSettingsProvider.future);
+    final secCode = settings?.secondaryCurrencyCode ?? 'CUP';
+    final currencies = await ref.read(calculatorCurrenciesProvider.future);
+    final targetCurrInfo = currencies.firstWhere(
+      (c) => c.currency.code == secCode,
+      orElse: () => currencies.first,
+    );
+    if (mounted && targetCurrInfo.unitsPerUsd.toDouble() > 0) {
+      setState(() {
+        _rateController.text = targetCurrInfo.unitsPerUsd.toDouble().toStringAsFixed(2).replaceAll('.00', '');
+      });
+    }
   }
 
   void _onAmountChanged() {
@@ -50,11 +73,12 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
     final balances = ref.read(accountBalancesProvider).value;
     if (balances == null) return;
 
-    final cupAccount = balances.firstWhere((b) => b.currency.code == 'CUP', orElse: () => balances.first);
+    final secCode = ref.read(appSettingsProvider).value?.secondaryCurrencyCode ?? 'CUP';
+    final secAccount = balances.firstWhere((b) => b.currency.code == secCode, orElse: () => balances.first);
     final usdAccount = balances.firstWhere((b) => b.currency.code == 'USD', orElse: () => balances.last);
 
-    final sourceAccount = _isCupToUsd ? cupAccount : usdAccount;
-    final targetAccount = _isCupToUsd ? usdAccount : cupAccount;
+    final sourceAccount = _isCupToUsd ? secAccount : usdAccount;
+    final targetAccount = _isCupToUsd ? usdAccount : secAccount;
 
     final sourceAmountStr = _amountController.text.replaceAll(',', '.');
     final rateStr = _rateController.text.replaceAll(',', '.');
@@ -87,14 +111,16 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
     final targetMinorUnits = (targetAmount * 100).toInt();
 
     final now = DateTime.now();
-    final repo = ref.read(movementRepositoryProvider);
+    final repo = ref.read(transferRepositoryProvider);
     final idGen = ref.read(idGeneratorProvider);
+    final transferId = idGen.next();
 
-    // 1. Withdrawal (Expense)
+    // 1. Withdrawal -> transfer_out
     final expense = Movement(
       id: idGen.next(),
       accountId: sourceAccount.accountId,
-      type: MovementType.expense,
+      transferId: transferId,
+      type: MovementType.transferOut,
       amount: Money(minorUnits: sourceMinorUnits, currency: sourceAccount.currency),
       occurredAt: now,
       note: 'Conversión de moneda (Salida)',
@@ -102,21 +128,35 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
       updatedAt: now,
     );
 
-    // 2. Deposit (Income)
+    // 2. Deposit -> transfer_in
     final income = Movement(
       id: idGen.next(),
       accountId: targetAccount.accountId,
-      type: MovementType.income,
+      transferId: transferId,
+      type: MovementType.transferIn,
       amount: Money(minorUnits: targetMinorUnits, currency: targetAccount.currency),
       occurredAt: now,
       note: 'Conversión de moneda (Entrada)',
       createdAt: now,
       updatedAt: now,
     );
+    
+    // 3. Transfer
+    final transfer = Transfer(
+      id: transferId,
+      sourceAccountId: sourceAccount.accountId,
+      destinationAccountId: targetAccount.accountId,
+      sourceAmount: expense.amount,
+      destinationAmount: income.amount,
+      exchangeRate: Decimal.parse(rate.toString()),
+      occurredAt: now,
+      note: 'Conversión de moneda',
+      createdAt: now,
+      updatedAt: now,
+    );
 
     try {
-      await repo.create(expense);
-      await repo.create(income);
+      await repo.create(transfer: transfer, outgoing: expense, incoming: income);
 
       ref.invalidate(recentMovementsProvider);
       ref.invalidate(dashboardSummaryProvider);
@@ -149,11 +189,12 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
       );
     }
 
-    final cupAccount = balances.firstWhere((b) => b.currency.code == 'CUP', orElse: () => balances.first);
+    final secCode = ref.watch(appSettingsProvider).value?.secondaryCurrencyCode ?? 'CUP';
+    final secAccount = balances.firstWhere((b) => b.currency.code == secCode, orElse: () => balances.first);
     final usdAccount = balances.firstWhere((b) => b.currency.code == 'USD', orElse: () => balances.last);
 
-    final sourceAccount = _isCupToUsd ? cupAccount : usdAccount;
-    final targetAccount = _isCupToUsd ? usdAccount : cupAccount;
+    final sourceAccount = _isCupToUsd ? secAccount : usdAccount;
+    final targetAccount = _isCupToUsd ? usdAccount : secAccount;
 
     // Calculate approximate received amount
     final sourceAmount = double.tryParse(_amountController.text.replaceAll(',', '.')) ?? 0.0;
@@ -212,7 +253,7 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
                           children: [
                             _AccountSelector(
                               label: 'Origen',
-                              currencySymbol: sourceAccount.currency.code == 'CUP' ? '\$' : 'USD',
+                              currencySymbol: sourceAccount.currency.code == secCode ? '\$' : 'USD',
                               currencyColor: _isCupToUsd ? AppColors.onSurface : AppColors.wealth,
                               accountName: 'Cuenta ${sourceAccount.currency.code}',
                               balance: (sourceAccount.balance.minorUnits / 100).toStringAsFixed(2),
@@ -220,7 +261,7 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
                             const SizedBox(height: 16),
                             _AccountSelector(
                               label: 'Destino',
-                              currencySymbol: targetAccount.currency.code == 'CUP' ? '\$' : 'USD',
+                              currencySymbol: targetAccount.currency.code == secCode ? '\$' : 'USD',
                               currencyColor: _isCupToUsd ? AppColors.wealth : AppColors.onSurface,
                               accountName: 'Cuenta ${targetAccount.currency.code}',
                               balance: (targetAccount.balance.minorUnits / 100).toStringAsFixed(2),
@@ -274,7 +315,7 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
                           Row(
                             children: [
                               Text(
-                                sourceAccount.currency.code == 'CUP' ? '\$' : 'USD',
+                                sourceAccount.currency.code == secCode ? '\$' : 'USD',
                                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                                       color: AppColors.onSurface,
                                     ),
@@ -342,7 +383,7 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'CUP',
+                            secCode,
                             style: Theme.of(context).textTheme.labelMedium?.copyWith(
                                   color: AppColors.onSurfaceVariant,
                                 ),
@@ -366,7 +407,7 @@ class _ConverterViewState extends ConsumerState<ConverterView> {
                           ),
                           const SizedBox(width: 16),
                           Text(
-                            '${targetAccount.currency.code == 'CUP' ? '\$' : 'USD'} ${receivedAmount.toStringAsFixed(2)}',
+                            '${targetAccount.currency.code == secCode ? '\$' : 'USD'} ${receivedAmount.toStringAsFixed(2)}',
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                   color: AppColors.wealth,
                                 ),

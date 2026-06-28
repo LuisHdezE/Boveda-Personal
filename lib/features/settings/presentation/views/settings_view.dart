@@ -3,6 +3,10 @@ import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:boveda_personal/core/providers/core_providers.dart';
+import 'package:boveda_personal/features/settings/presentation/providers/calculator_currencies_provider.dart';
+import 'package:boveda_personal/features/dashboard/presentation/providers.dart';
+import 'package:boveda_personal/features/movements/presentation/providers.dart';
 
 class SettingsView extends ConsumerWidget {
   const SettingsView({super.key});
@@ -32,12 +36,6 @@ class SettingsView extends ConsumerWidget {
                 subtitle: 'Información personal',
                 onTap: () => context.push('/settings/profile'),
               ),
-              _SettingsItem(
-                icon: Icons.key_outlined,
-                title: 'Cambio de contraseña',
-                subtitle: 'Actualizar credenciales',
-                onTap: () => context.push('/settings/password'),
-              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -51,6 +49,29 @@ class SettingsView extends ConsumerWidget {
                 subtitleColor: AppColors.wealth,
                 onTap: () => context.push('/settings/currencies'),
               ),
+              Consumer(
+                builder: (context, ref, _) {
+                  final settingsAsync = ref.watch(appSettingsProvider);
+                  return settingsAsync.when(
+                    data: (settings) {
+                      final secCode = settings?.secondaryCurrencyCode ?? 'CUP';
+                      return _SettingsItem(
+                        icon: Icons.currency_exchange,
+                        title: 'Moneda secundaria',
+                        subtitle: secCode,
+                        subtitleColor: AppColors.wealth,
+                        onTap: () => _showSecondaryCurrencyPicker(context, ref),
+                      );
+                    },
+                    loading: () => const _SettingsItem(
+                      icon: Icons.currency_exchange,
+                      title: 'Moneda secundaria',
+                      subtitle: 'Cargando...',
+                    ),
+                    error: (_, __) => const SizedBox(),
+                  );
+                },
+              ),
               _SettingsItem(
                 icon: Icons.language_outlined,
                 title: 'Idioma',
@@ -63,17 +84,6 @@ class SettingsView extends ConsumerWidget {
           _SettingsGroup(
             title: 'SEGURIDAD',
             children: [
-              _SettingsItem(
-                icon: Icons.fingerprint,
-                iconColor: AppColors.wealth,
-                title: 'Biometría',
-                subtitle: 'Usar Face ID / Touch ID',
-                trailing: Switch(
-                  value: true,
-                  onChanged: (val) {},
-                  activeColor: AppColors.wealth,
-                ),
-              ),
               _SettingsItem(
                 icon: Icons.lock_clock_outlined,
                 title: 'Bloqueo automático',
@@ -117,6 +127,96 @@ class SettingsView extends ConsumerWidget {
           const SizedBox(height: 32),
         ],
       ),
+    );
+  }
+
+  void _showSecondaryCurrencyPicker(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceHigh,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Consumer(
+          builder: (context, ref, _) {
+            final currenciesAsync = ref.watch(calculatorCurrenciesProvider);
+            return currenciesAsync.when(
+              data: (currencies) {
+                // Ignore USD for secondary currency
+                final list = currencies.where((c) => c.currency.code != 'USD' && c.isActive).toList();
+                return SafeArea(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          'Seleccionar Moneda Secundaria',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                color: AppColors.onSurface,
+                              ),
+                        ),
+                      ),
+                      const Divider(color: Colors.white10),
+                      Flexible(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: list.length,
+                          itemBuilder: (context, index) {
+                            final currency = list[index];
+                            return ListTile(
+                              leading: Text(
+                                currency.symbol,
+                                style: const TextStyle(fontSize: 20, color: AppColors.wealth),
+                              ),
+                              title: Text(currency.name, style: const TextStyle(color: AppColors.onSurface)),
+                              subtitle: Text(currency.currency.code, style: const TextStyle(color: AppColors.onSurfaceVariant)),
+                              onTap: () async {
+                                  final settings = await ref.read(appSettingsProvider.future);
+                                  if (settings != null) {
+                                    final newSettings = settings.copyWith(secondaryCurrencyCode: currency.currency.code);
+                                    await ref.read(settingsRepositoryProvider).save(newSettings);
+                                    
+                                    // Update the secondary account in the database
+                                    final accountRepo = ref.read(accountRepositoryProvider);
+                                    final accounts = await accountRepo.list();
+                                    final secondaryAccount = accounts.firstWhere((a) => a.currency.code != 'USD', orElse: () => accounts.last);
+                                    
+                                    if (secondaryAccount.currency.code != currency.currency.code) {
+                                      await accountRepo.updateCurrency(
+                                        secondaryAccount.id,
+                                        currencyCode: currency.currency.code,
+                                        currencyScale: currency.currency.scale,
+                                      );
+                                    }
+
+                                    ref.invalidate(appSettingsProvider);
+                                    ref.invalidate(accountBalancesProvider);
+                                    ref.invalidate(dashboardSummaryProvider);
+                                    ref.invalidate(movementsProvider);
+                                  }
+                                  if (context.mounted) {
+                                    Navigator.of(context).pop();
+                                  }
+                                },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              loading: () => const Center(child: Padding(
+                padding: EdgeInsets.all(32),
+                child: CircularProgressIndicator(),
+              )),
+              error: (_, __) => const Center(child: Text('Error al cargar monedas', style: TextStyle(color: Colors.red))),
+            );
+          },
+        );
+      },
     );
   }
 }

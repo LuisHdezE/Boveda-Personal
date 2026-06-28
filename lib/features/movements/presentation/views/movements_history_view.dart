@@ -5,6 +5,7 @@ import 'package:boveda_personal/core/providers/core_providers.dart';
 import 'package:boveda_personal/features/dashboard/presentation/providers.dart';
 import 'package:boveda_personal/shared/presentation/widgets/glass_card.dart';
 import 'package:boveda_personal/shared/presentation/widgets/main_scaffold.dart';
+import 'package:boveda_personal/core/utils/currency_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -202,7 +203,7 @@ class _TransactionsList extends StatelessWidget {
                 icon: isIncome ? Icons.arrow_upward : Icons.arrow_downward,
                 title: m.note ?? (isIncome ? 'Ingreso' : 'Gasto'),
                 category: 'Movimiento', // TODO: categories
-                amount: '${isIncome ? '+' : '-'}\$${(m.amount.minorUnits / 100).toStringAsFixed(2)}',
+                amount: CurrencyFormatter.formatAmount(isIncome ? (m.amount.minorUnits / 100) : -(m.amount.minorUnits / 100), currencyCode: m.amount.currency.code),
                 isIncome: isIncome,
               );
             }).toList(),
@@ -324,15 +325,24 @@ class _TransactionItem extends ConsumerWidget {
                 );
                 
                 if (confirm == true) {
-                  await ref.read(movementRepositoryProvider).delete(movement.id);
-                  ref.invalidate(recentMovementsProvider);
-                  ref.invalidate(dashboardSummaryProvider);
-                  ref.invalidate(accountBalancesProvider);
-                  ref.invalidate(movementsProvider);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Movimiento eliminado')),
-                    );
+                  final success = await ref.read(deleteMovementProvider.notifier).delete(movement);
+                  if (success) {
+                    ref.invalidate(recentMovementsProvider);
+                    ref.invalidate(dashboardSummaryProvider);
+                    ref.invalidate(accountBalancesProvider);
+                    ref.invalidate(movementsProvider);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Movimiento eliminado')),
+                      );
+                    }
+                  } else {
+                    if (context.mounted) {
+                      final errorState = ref.read(deleteMovementProvider).error;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(errorState?.toString().replaceAll('Exception: ', '') ?? 'Error al eliminar')),
+                      );
+                    }
                   }
                 }
               },
@@ -346,7 +356,7 @@ class _TransactionItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return InkWell(
-      onTap: () => context.push('/movements/detail'),
+      onTap: () => context.push('/movements/detail', extra: movement),
       onLongPress: () => _showOptions(context, ref),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -380,6 +390,13 @@ class _TransactionItem extends ConsumerWidget {
                     category,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${movement.occurredAt.day}/${movement.occurredAt.month}/${movement.occurredAt.year} ${movement.occurredAt.hour.toString().padLeft(2, '0')}:${movement.occurredAt.minute.toString().padLeft(2, '0')}',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
                         ),
                   ),
                 ],

@@ -37,6 +37,7 @@ class SqliteAccountRepository implements AccountRepository {
         userId: account.userId,
         currency: account.currency,
         balance: Money(minorUnits: minor ?? 0, currency: account.currency),
+        accountName: account.name,
       ));
     }
     return result;
@@ -50,6 +51,11 @@ class SqliteAccountRepository implements AccountRepository {
   @override
   Future<void> setActive(String id, {required bool active}) async {
     await _dao.setActive(id, active: active);
+  }
+
+  @override
+  Future<void> updateCurrency(String id, {required String currencyCode, required int currencyScale}) async {
+    await _dao.updateCurrency(id, currencyCode: currencyCode, currencyScale: currencyScale);
   }
 
   // ─── Mapeo ────────────────────────────────────────────────────────────────

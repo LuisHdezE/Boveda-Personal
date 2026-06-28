@@ -23,6 +23,7 @@ class SqliteSubscriptionRepository implements SubscriptionRepository {
       isActive: subscription.isActive,
       createdAt: subscription.createdAt,
       updatedAt: subscription.updatedAt,
+      lastPaymentDate: subscription.lastPaymentDate,
     );
 
     await _dao.insert(model);
@@ -40,12 +41,16 @@ class SqliteSubscriptionRepository implements SubscriptionRepository {
       return Subscription(
         id: m.id,
         name: m.name,
-        amount: Money(minorUnits: m.amountMinor, currency: Currency(code: m.currencyCode, scale: 2)), // Assuming scale 2
+        amount: Money(
+          minorUnits: m.amountMinor,
+          currency: Currency(code: m.currencyCode, scale: 2),
+        ), // Assuming scale 2
         billingCycle: m.billingCycle,
         nextBillingDate: m.nextBillingDate,
         isActive: m.isActive,
         createdAt: m.createdAt,
         updatedAt: m.updatedAt,
+        lastPaymentDate: m.lastPaymentDate,
       );
     }).toList();
   }

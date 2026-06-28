@@ -28,6 +28,7 @@ class SqliteSettingsRepository implements SettingsRepository {
     return AppSettings(
       userId: row.requiredString('user_id'),
       primaryCurrencyCode: row.requiredString('primary_currency_code'),
+      secondaryCurrencyCode: row.requiredString('secondary_currency_code'),
       locale: row.requiredString('locale'),
       biometricsEnabled: row.requiredBool('biometrics_enabled'),
       autoLockDuration: autoLockSeconds != null
@@ -44,6 +45,7 @@ class SqliteSettingsRepository implements SettingsRepository {
       'id': AppSettings.singletonId,
       'user_id': s.userId,
       'primary_currency_code': s.primaryCurrencyCode,
+      'secondary_currency_code': s.secondaryCurrencyCode,
       'locale': s.locale,
       'biometrics_enabled': RowConverters.boolToSql(s.biometricsEnabled),
       'auto_lock_duration_seconds': s.autoLockDuration?.inSeconds,

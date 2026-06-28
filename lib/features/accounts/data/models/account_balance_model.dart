@@ -17,6 +17,7 @@ abstract final class AccountBalanceModel {
         minorUnits: row.requiredInt('balance_minor'),
         currency: currency,
       ),
+      accountName: row.requiredString('account_name'),
     );
   }
 }

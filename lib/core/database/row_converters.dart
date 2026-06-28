@@ -6,10 +6,16 @@ abstract final class RowConverters {
   }
 
   static DateTime dateFromSql(Object? value) {
-    if (value is! int) {
-      throw const FormatException('Expected SQLite integer date');
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value, isUtc: true);
+    } else if (value is String) {
+      final parsedInt = int.tryParse(value);
+      if (parsedInt != null) {
+        return DateTime.fromMillisecondsSinceEpoch(parsedInt, isUtc: true);
+      }
+      return DateTime.parse(value).toUtc();
     }
-    return DateTime.fromMillisecondsSinceEpoch(value, isUtc: true);
+    throw FormatException('Expected SQLite integer or string date, got ${value.runtimeType}: $value');
   }
 
   static String decimalToSql(String value) {
